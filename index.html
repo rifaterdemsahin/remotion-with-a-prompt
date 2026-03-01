@@ -300,6 +300,9 @@
       0%, 100% { opacity: 1; }
       50% { opacity: 0.3; }
     }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body data-root="./">
@@ -412,8 +415,28 @@
             placeholder="Describe your video animation...&#10;e.g. 'Fade in my logo, then slide up the title text, zoom in for 3 seconds on a dark purple background'"
             autofocus
           ></textarea>
-          <div id="enhance-overlay" style="display:none;position:absolute;inset:0;background:rgba(13,17,23,0.75);border-radius:var(--radius);display:none;align-items:center;justify-content:center;font-size:13px;color:var(--accent-light)">
-            ✨ Enhancing with Grok...
+          <div id="enhance-overlay" style="display:none;position:absolute;inset:0;background:rgba(13,17,23,0.82);border-radius:var(--radius);align-items:center;justify-content:center;flex-direction:column;gap:8px;font-size:13px;color:var(--accent-light)">
+            <span style="font-size:22px;animation:spin 1.2s linear infinite;display:inline-block">✨</span>
+            Enhancing with Grok…
+          </div>
+        </div>
+
+        <!-- Enhancement result panel — shown after Grok responds -->
+        <div id="enhance-result" style="display:none;margin-top:12px;border:1px solid var(--accent);border-radius:var(--radius-lg);overflow:hidden">
+          <!-- before -->
+          <div style="padding:10px 14px;background:var(--bg-tertiary);border-bottom:1px solid var(--border)">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:6px">Original</div>
+            <div id="enhance-before" style="font-size:13px;color:var(--text-muted);line-height:1.6;white-space:pre-wrap;word-break:break-word"></div>
+          </div>
+          <!-- after -->
+          <div style="padding:10px 14px;background:rgba(124,58,237,0.08)">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent-light);margin-bottom:6px">✨ Enhanced by Grok</div>
+            <div id="enhance-after" style="font-size:13px;color:var(--text-primary);line-height:1.6;white-space:pre-wrap;word-break:break-word"></div>
+          </div>
+          <!-- actions -->
+          <div style="display:flex;gap:8px;padding:10px 14px;background:var(--bg-card);border-top:1px solid var(--border)">
+            <button class="btn btn-primary btn-sm" onclick="applyEnhancement()">✅ Use enhanced</button>
+            <button class="btn btn-secondary btn-sm" onclick="discardEnhancement()">✕ Keep original</button>
           </div>
         </div>
       </div>
@@ -1300,32 +1323,59 @@
     }
 
     // ── Prompt enhancement via Grok ──────────────────────────────────────────
+    var _pendingEnhanced = '';
+
     async function runEnhance() {
       if (!window.xAI) { setStatus('error', 'xAI module not loaded'); return; }
       var ta = document.getElementById('prompt-input');
       var raw = ta.value.trim();
       if (!raw) { setStatus('error', 'Enter a prompt first, then click Enhance'); return; }
 
-      var btn = document.getElementById('enhance-btn');
+      // Hide any previous result
+      document.getElementById('enhance-result').style.display = 'none';
+      _pendingEnhanced = '';
+
+      var btn     = document.getElementById('enhance-btn');
       var overlay = document.getElementById('enhance-overlay');
       btn.disabled = true;
       btn.textContent = '⏳ Enhancing…';
-      if (overlay) { overlay.style.display = 'flex'; }
+      overlay.style.display = 'flex';
       setStatus('generating', 'Enhancing prompt with Grok AI…');
 
       try {
         var enhanced = await window.xAI.enhancePrompt(raw);
-        ta.value = enhanced;
-        ta.focus();
-        setStatus('ready', '✨ Prompt enhanced by Grok — review and click Generate');
+        _pendingEnhanced = enhanced;
+
+        // Show before / after panel
+        document.getElementById('enhance-before').textContent = raw;
+        document.getElementById('enhance-after').textContent  = enhanced;
+        document.getElementById('enhance-result').style.display = 'block';
+        document.getElementById('enhance-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        setStatus('ready', '✨ Grok enhanced your prompt — apply or discard below');
       } catch (e) {
         setStatus('error', '⚠️ Enhance failed: ' + e.message);
         if (!window.xAI.hasKey()) toggleSettings();
       } finally {
         btn.disabled = false;
         btn.textContent = '✨ Enhance';
-        if (overlay) overlay.style.display = 'none';
+        overlay.style.display = 'none';
       }
+    }
+
+    function applyEnhancement() {
+      if (!_pendingEnhanced) return;
+      document.getElementById('prompt-input').value = _pendingEnhanced;
+      document.getElementById('enhance-result').style.display = 'none';
+      _pendingEnhanced = '';
+      document.getElementById('prompt-input').focus();
+      setStatus('ready', '✅ Enhanced prompt applied — click Generate Composition');
+    }
+
+    function discardEnhancement() {
+      document.getElementById('enhance-result').style.display = 'none';
+      _pendingEnhanced = '';
+      setStatus('ready', 'Original prompt kept');
     }
 
     // ── Image generation via xAI Aurora ─────────────────────────────────────
