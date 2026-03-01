@@ -117,5 +117,12 @@
     "description": "All Claude model performance data: tokens/sec, TTFT, cost per million tokens, and formula reference",
     "emoji": "📄",
     "tags": ["claude", "performance", "formula", "tokens", "cost", "seconds", "speed", "haiku", "sonnet", "opus", "latency", "pricing"]
+  },
+  {
+    "title": "Origin Prompt — This Repo's Creation Story",
+    "url": "4_Formula/origin-prompt.md",
+    "description": "The single prompt that describes how this repo was created — a self-referential loop from prompt to tool to video",
+    "emoji": "✨",
+    "tags": ["origin", "prompt", "meta", "creation", "story", "self-referential", "remotion-with-a-prompt"]
   }
 ]
