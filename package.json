@@ -1,0 +1,22 @@
+{
+  "name": "remotion-with-a-prompt",
+  "version": "1.0.0",
+  "description": "Create Remotion video animations from text prompts",
+  "scripts": {
+    "start": "remotion studio",
+    "build": "remotion render",
+    "render": "remotion render",
+    "render:pythagorean": "remotion render src/index.ts PythagoreanTheorem out/pythagorean.mp4"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "remotion": "^4.0.0"
+  },
+  "devDependencies": {
+    "@remotion/cli": "^4.0.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎬 Templates — Remotion Studio</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <style>
+    /* ── Layout ─────────────────────────────────────────────────────────── */
+    .tpl-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 24px;
+      padding: 24px;
+      max-width: 1300px;
+      margin: 0 auto;
+      align-items: start;
+    }
+    @media (max-width: 860px) { .tpl-layout { grid-template-columns: 1fr; } }
+
+    /* ── Selector sidebar ────────────────────────────────────────────────── */
+    .tpl-sidebar { display: flex; flex-direction: column; gap: 12px; }
+
+    .tpl-search-wrap { position: relative; }
+    .tpl-search-wrap input {
+      width: 100%; padding: 10px 36px 10px 12px;
+      background: var(--bg-tertiary); border: 1px solid var(--border);
+      border-radius: var(--radius); color: var(--text-primary); font-size: 14px;
+      box-sizing: border-box;
+    }
+    .tpl-search-wrap input:focus { outline: none; border-color: var(--accent); }
+    .tpl-search-icon { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-muted); }
+
+    .tpl-select {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--bg-tertiary); border: 1px solid var(--border);
+      border-radius: var(--radius); color: var(--text-primary); font-size: 14px;
+      cursor: pointer; appearance: none;
+    }
+    .tpl-select:focus { outline: none; border-color: var(--accent); }
+
+    /* ── Template cards in sidebar ───────────────────────────────────────── */
+    .tpl-card-list { display: flex; flex-direction: column; gap: 6px; max-height: 420px; overflow-y: auto; }
+    .tpl-card-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: var(--radius);
+      background: var(--bg-tertiary); border: 1px solid transparent;
+      cursor: pointer; transition: border-color 0.15s, background 0.15s;
+      font-size: 13px;
+    }
+    .tpl-card-item:hover { background: var(--bg-secondary); border-color: var(--border); }
+    .tpl-card-item.active { border-color: var(--accent); background: rgba(124,58,237,0.12); }
+    .tpl-card-item .tpl-icon { font-size: 20px; flex-shrink: 0; }
+    .tpl-card-item .tpl-name { font-weight: 600; color: var(--text-primary); }
+    .tpl-card-item .tpl-keywords { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    /* ── Config panel ────────────────────────────────────────────────────── */
+    .tpl-config { display: flex; flex-direction: column; gap: 16px; }
+
+    .tpl-header { display: flex; align-items: center; gap: 14px; margin-bottom: 4px; }
+    .tpl-header .big-icon { font-size: 48px; }
+    .tpl-header h2 { font-size: 24px; font-weight: 800; margin: 0 0 4px; }
+    .tpl-header p { color: var(--text-secondary); font-size: 14px; margin: 0; }
+
+    /* ── Form fields ─────────────────────────────────────────────────────── */
+    .field-row { display: flex; flex-direction: column; gap: 4px; }
+    .field-row label { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; }
+    .field-row input[type="text"],
+    .field-row input[type="number"],
+    .field-row select,
+    .field-row textarea {
+      padding: 9px 12px;
+      background: var(--bg-tertiary); border: 1px solid var(--border);
+      border-radius: var(--radius); color: var(--text-primary); font-size: 14px;
+      width: 100%; box-sizing: border-box;
+    }
+    .field-row input:focus, .field-row select:focus, .field-row textarea:focus {
+      outline: none; border-color: var(--accent);
+    }
+    .field-row textarea { min-height: 80px; resize: vertical; }
+
+    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .field-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+    /* ── Color picker ────────────────────────────────────────────────────── */
+    .color-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+    .color-swatch {
+      width: 28px; height: 28px; border-radius: 6px; cursor: pointer;
+      border: 2px solid transparent; transition: border-color 0.15s;
+    }
+    .color-swatch.active { border-color: white; }
+    .color-swatch.custom { display: flex; align-items: center; justify-content: center; background: var(--bg-tertiary); border: 1px dashed var(--border); font-size: 14px; width: 28px; height: 28px; }
+    .color-input-wrap { display: flex; align-items: center; gap: 8px; }
+    .color-input-wrap input[type="color"] { width: 36px; height: 28px; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; padding: 2px; background: var(--bg-tertiary); }
+
+    /* ── Image upload strip ──────────────────────────────────────────────── */
+    .img-drop-mini {
+      border: 2px dashed var(--border); border-radius: var(--radius);
+      padding: 16px; text-align: center; cursor: pointer;
+      background: var(--bg-tertiary); transition: border-color 0.15s;
+      font-size: 13px; color: var(--text-secondary);
+    }
+    .img-drop-mini:hover { border-color: var(--accent); }
+    .img-thumbs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .img-thumb-mini {
+      width: 56px; height: 56px; border-radius: 6px; overflow: hidden;
+      border: 1px solid var(--border); position: relative;
+    }
+    .img-thumb-mini img { width: 100%; height: 100%; object-fit: cover; }
+    .img-thumb-mini .rm { position: absolute; top: 1px; right: 1px; width: 16px; height: 16px; border-radius: 50%; background: rgba(0,0,0,0.7); color: white; border: none; cursor: pointer; font-size: 9px; display: flex; align-items: center; justify-content: center; opacity: 0; }
+    .img-thumb-mini:hover .rm { opacity: 1; }
+
+    /* ── Example prompt chip ─────────────────────────────────────────────── */
+    .example-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .ex-chip {
+      padding: 4px 10px; border-radius: 20px; font-size: 12px;
+      background: var(--bg-tertiary); border: 1px solid var(--border);
+      cursor: pointer; color: var(--text-secondary); transition: all 0.15s;
+    }
+    .ex-chip:hover { background: rgba(124,58,237,0.2); border-color: var(--accent); color: var(--text-primary); }
+
+    /* ── CTA ──────────────────────────────────────────────────────────────── */
+    .tpl-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+  </style>
+</head>
+<body data-root="./">
+  <nav id="debug-nav"></nav>
+  <nav id="main-nav">
+    <a href="index.html" class="nav-logo">🎬 <span>Remotion</span> Studio</a>
+    <div id="nav-search-container"><input type="text" id="nav-search" placeholder="Search..." autocomplete="off" /><span class="search-icon">🔍</span><div id="search-dropdown"></div></div>
+    <div id="content-nav-items"></div>
+    <div class="nav-actions">
+      <a href="https://github.com/rifaterdemsahin/remotion-with-a-prompt" target="_blank" class="nav-social-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.09.68-.22.68-.48l-.01-1.69c-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0112 6.8c.85.004 1.71.11 2.51.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85l-.01 2.75c0 .27.18.58.69.48A10.02 10.02 0 0022 12c0-5.52-4.48-10-10-10z"/></svg></a>
+      <button id="debug-toggle-btn" onclick="window.toggleDebug()">🐛</button>
+    </div>
+  </nav>
+
+  <div class="page-content">
+    <div class="hero" style="text-align:left;padding-bottom:20px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+        <span style="font-size:48px">🎨</span>
+        <div>
+          <h1 style="font-size:32px;font-weight:800;margin:0">Animation Templates</h1>
+          <p style="color:var(--text-secondary);margin:4px 0 0">11 built-in templates. Select one, fill in the fields, and generate instantly.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tpl-layout">
+
+      <!-- Left: selector -->
+      <div class="tpl-sidebar">
+        <div class="card" style="padding:12px">
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:8px">Find a template</div>
+          <div class="tpl-search-wrap" style="margin-bottom:8px">
+            <input type="text" id="tpl-search" placeholder="Describe what you want…" oninput="searchTemplates(this.value)" autocomplete="off" />
+            <span class="tpl-search-icon">🔍</span>
+          </div>
+          <div id="search-match" style="display:none;padding:6px 10px;background:rgba(124,58,237,0.12);border:1px solid var(--accent);border-radius:var(--radius);font-size:13px;margin-bottom:8px;color:var(--accent-light)"></div>
+          <div class="tpl-card-list" id="tpl-card-list"></div>
+        </div>
+      </div>
+
+      <!-- Right: config panel -->
+      <div class="tpl-config" id="tpl-config">
+        <!-- filled by JS -->
+        <div class="card" style="text-align:center;padding:48px 24px;color:var(--text-muted)">
+          <div style="font-size:48px;margin-bottom:12px">👈</div>
+          <p>Select a template from the list on the left to configure it.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer><p>🎬 Remotion Studio &nbsp;|&nbsp; <a href="index.html">← Studio</a> &nbsp;|&nbsp; <a href="https://github.com/rifaterdemsahin/remotion-with-a-prompt">GitHub</a></p></footer>
+
+  <script src="assets/nav-component.js"></script>
+  <script>
+    // ── Template definitions ──────────────────────────────────────────────────
+    var TEMPLATES = [
+      {
+        id: 'fade', icon: '🌅', name: 'Fade', category: 'Basic',
+        desc: 'Elements fade in and optionally fade out. The simplest and most versatile template.',
+        keywords: ['fade', 'appear', 'dissolve', 'opacity'],
+        needsImage: true,
+        fields: [
+          { id: 'text',     label: 'Text content',  type: 'text',   placeholder: 'Hello World' },
+          { id: 'bgColor',  label: 'Background',    type: 'color',  presets: ['#0d1117','#1a0533','#000000','#0d2137','gradient'] },
+          { id: 'textColor',label: 'Text colour',   type: 'color',  presets: ['#ffffff','#a78bfa','#60a5fa','#50fa7b'] },
+          { id: 'duration', label: 'Duration (s)',   type: 'number', default: 5, min: 1, max: 30 },
+          { id: 'fadeOut',  label: 'Fade out at end',type: 'toggle', default: true },
+          { id: 'gradient', label: 'Rainbow text',  type: 'toggle', default: false },
+        ],
+        examples: ['Fade in my logo on dark background', 'Fade in rainbow text saying Launch Day'],
+        promptFn: function(f) {
+          var p = 'fade in';
+          if (f.gradient) p += ' rainbow gradient';
+          p += ' text saying "' + (f.text||'Hello World') + '"';
+          p += ' on ' + colorName(f.bgColor||'#0d1117') + ' background';
+          if (f.fadeOut) p += ', fade out at end';
+          p += ', ' + (f.duration||5) + ' seconds';
+          return p;
+        },
+      },
+      {
+        id: 'slide', icon: '➡️', name: 'Slide', category: 'Motion',
+        desc: 'Content slides in from any direction with a smooth spring easing.',
+        keywords: ['slide', 'enter', 'move', 'direction', 'left', 'right', 'up', 'down'],
+        needsImage: true,
+        fields: [
+          { id: 'text',      label: 'Text content',    type: 'text',   placeholder: 'Hello World' },
+          { id: 'direction', label: 'Slide direction',  type: 'select', options: ['left','right','up','down'], default: 'left' },
+          { id: 'bgColor',   label: 'Background',       type: 'color',  presets: ['#0d1117','#1a0533','#0d2137','gradient'] },
+          { id: 'textColor', label: 'Text colour',      type: 'color',  presets: ['#ffffff','#a78bfa','#60a5fa'] },
+          { id: 'duration',  label: 'Duration (s)',      type: 'number', default: 5, min: 1, max: 30 },
+        ],
+        examples: ['Slide from left with title card', 'Slide up logo reveal on blue background'],
+        promptFn: function(f) {
+          return 'slide from ' + (f.direction||'left') + ' text saying "' + (f.text||'Hello World') + '"'
+            + ' on ' + colorName(f.bgColor||'#0d1117') + ' background, ' + (f.duration||5) + ' seconds';
+        },
+      },
+      {
+        id: 'zoom', icon: '🔍', name: 'Zoom', category: 'Motion',
+        desc: 'Content scales from 0 to full size with a smooth spring.',
+        keywords: ['zoom', 'scale', 'grow', 'expand'],
+        needsImage: true,
+        fields: [
+          { id: 'text',     label: 'Text content', type: 'text',   placeholder: 'Hello World' },
+          { id: 'bgColor',  label: 'Background',   type: 'color',  presets: ['#0d1117','#1a0533','#0d2137','gradient'] },
+          { id: 'duration', label: 'Duration (s)', type: 'number', default: 5, min: 1, max: 30 },
+        ],
+        examples: ['Zoom in logo reveal', 'Scale up title saying Product Launch'],
+        promptFn: function(f) {
+          return 'zoom in text saying "' + (f.text||'Hello World') + '"'
+            + ' on ' + colorName(f.bgColor||'#0d1117') + ' background, ' + (f.duration||5) + ' seconds';
+        },
+      },
+      {
+        id: 'bounce', icon: '🏀', name: 'Bounce', category: 'Motion',
+        desc: 'Bouncy spring entrance — overshoots then settles.',
+        keywords: ['bounce', 'elastic', 'spring', 'pop'],
+        needsImage: true,
+        fields: [
+          { id: 'text',     label: 'Text content', type: 'text',   placeholder: 'Hello World' },
+          { id: 'bgColor',  label: 'Background',   type: 'color',  presets: ['#0d1117','#1a0533','#0d2a1a','gradient'] },
+          { id: 'duration', label: 'Duration (s)', type: 'number', default: 5, min: 1, max: 30 },
+        ],
+        examples: ['Bounce animation with logo', 'Elastic pop-in for title card'],
+        promptFn: function(f) {
+          return 'bounce animation text saying "' + (f.text||'Hello World') + '"'
+            + ' on ' + colorName(f.bgColor||'#0d1117') + ' background, ' + (f.duration||5) + ' seconds';
+        },
+      },
+      {
+        id: 'rotate', icon: '🌀', name: 'Rotate', category: 'Motion',
+        desc: 'Spins in from 180° to 0° and settles.',
+        keywords: ['rotate', 'spin', 'turn', 'wheel'],
+        needsImage: true,
+        fields: [
+          { id: 'text',     label: 'Text content', type: 'text',   placeholder: 'Hello World' },
+          { id: 'bgColor',  label: 'Background',   type: 'color',  presets: ['#0d1117','#1a0533','#000000','gradient'] },
+          { id: 'duration', label: 'Duration (s)', type: 'number', default: 5, min: 1, max: 30 },
+        ],
+        examples: ['Rotate and spin logo reveal', 'Spin text into view on dark background'],
+        promptFn: function(f) {
+          return 'rotate spin text saying "' + (f.text||'Hello World') + '"'
+            + ' on ' + colorName(f.bgColor||'#0d1117') + ' background, ' + (f.duration||5) + ' seconds';
+        },
+      },
+      {
+        id: 'typewriter', icon: '⌨️', name: 'Typewriter', category: 'Text',
+        desc: 'Characters reveal one by one — classic terminal effect.',
+        keywords: ['typewriter', 'type', 'reveal', 'character'],
+        needsImage: false,
+        fields: [
+          { id: 'text',     label: 'Text to type', type: 'text',   placeholder: 'Hello World' },
+          { id: 'bgColor',  label: 'Background',   type: 'color',  presets: ['#0d1117','#000000','#1a0533','gradient'] },
+          { id: 'textColor',label: 'Text colour',  type: 'color',  presets: ['#ffffff','#50fa7b','#a78bfa','#f8f8f2'] },
+          { id: 'duration', label: 'Duration (s)', type: 'number', default: 5, min: 1, max: 30 },
+        ],
+        examples: ['Typewriter text: Hello World', 'Type out "Loading complete…" on terminal green'],
+        promptFn: function(f) {
+          return 'typewriter text saying "' + (f.text||'Hello World') + '"'
+            + ' on ' + colorName(f.bgColor||'#0d1117') + ' background, ' + (f.duration||5) + ' seconds';
+        },
+      },
+      {
+        id: 'typewriter-cursor', icon: '▌', name: 'Typewriter + Cursor', category: 'Text',
+        desc: 'Typewriter effect with a blinking cursor — realistic terminal look.',
+        keywords: ['cursor', 'blinking', 'caret', 'typewriter cursor'],
+        needsImage: false,
+        fields: [
+          { id: 'text',     label: 'Text to type', type: 'text',   placeholder: 'Hello World' },
+          { id: 'bgColor',  label: 'Background',   type: 'color',  presets: ['#0d1117','#000000','#1a0533','gradient'] },
+          { id: 'textColor',label: 'Text colour',  type: 'color',  presets: ['#ffffff','#50fa7b','#a78bfa'] },
+          { id: 'duration', label: 'Duration (s)', type: 'number', default: 6, min: 1, max: 30 },
+        ],
+        examples: ['Typewriter cursor blinking saying Hello', 'Blinking caret types out "npm install"'],
+        promptFn: function(f) {
+          return 'typewriter with blinking cursor saying "' + (f.text||'Hello World') + '"'
+            + ' on ' + colorName(f.bgColor||'#0d1117') + ' background, ' + (f.duration||6) + ' seconds';
+        },
+      },
+      {
+        id: 'particle', icon: '✨', name: 'Particles', category: 'Background',
+        desc: 'Floating animated dots in the background with text overlay.',
+        keywords: ['particle', 'dots', 'floating', 'confetti', 'ambient'],
+        needsImage: false,
+        fields: [
+          { id: 'text',     label: 'Text overlay',  type: 'text',   placeholder: 'Hello World' },
+          { id: 'bgColor',  label: 'Background',    type: 'color',  presets: ['#0d1117','#1a0533','#000000'] },
+          { id: 'gradient', label: 'Gradient text', type: 'toggle', default: true },
+          { id: 'duration', label: 'Duration (s)',  type: 'number', default: 6, min: 1, max: 30 },
+        ],
+        examples: ['Floating particles with Hello World', 'Confetti dots background with gradient title'],
+        promptFn: function(f) {
+          return 'floating particles'
+            + (f.gradient ? ' rainbow gradient' : '')
+            + ' text saying "' + (f.text||'Hello World') + '"'
+            + ' on ' + colorName(f.bgColor||'#0d1117') + ' background, ' + (f.duration||6) + ' seconds';
+        },
+      },
+      {
+        id: 'stagger', icon: '📋', name: 'Stagger List', category: 'Text',
+        desc: 'A list of items that reveal one by one with a staggered slide-in.',
+        keywords: ['stagger', 'list', 'items', 'bullet', 'steps', 'sequence'],
+        needsImage: false,
+        fields: [
+          { id: 'items',    label: 'List items (one per line)', type: 'textarea', placeholder: 'Step 1\nStep 2\nStep 3' },
+          { id: 'bgColor',  label: 'Background',   type: 'color',  presets: ['#0d1117','#1a0533','#0d2137','gradient'] },
+          { id: 'duration', label: 'Duration (s)', type: 'number', default: 6, min: 2, max: 30 },
+        ],
+        examples: ['Stagger list: Step 1, Step 2, Step 3', 'Reveal bullet points: Feature 1, Feature 2, Feature 3'],
+        promptFn: function(f) {
+          var items = (f.items||'Step 1\nStep 2\nStep 3').split('\n').map(function(s){return s.trim();}).filter(Boolean);
+          return 'stagger list: ' + items.join(', ')
+            + ' on ' + colorName(f.bgColor||'#0d1117') + ' background, ' + (f.duration||6) + ' seconds';
+        },
+      },
+      {
+        id: 'wave', icon: '🌊', name: 'Wave Text', category: 'Text',
+        desc: 'Each character oscillates vertically — a fluid rainbow wave effect.',
+        keywords: ['wave', 'wavy', 'ripple', 'oscillate', 'undulate'],
+        needsImage: false,
+        fields: [
+          { id: 'text',     label: 'Text content', type: 'text',   placeholder: 'Hello World' },
+          { id: 'bgColor',  label: 'Background',   type: 'color',  presets: ['#0d1117','#1a0533','#000000','gradient'] },
+          { id: 'duration', label: 'Duration (s)', type: 'number', default: 5, min: 1, max: 30 },
+        ],
+        examples: ['Wavy text saying Welcome', 'Wave animation Hello World on purple'],
+        promptFn: function(f) {
+          return 'wavy wave text saying "' + (f.text||'Hello World') + '"'
+            + ' on ' + colorName(f.bgColor||'#0d1117') + ' background, ' + (f.duration||5) + ' seconds';
+        },
+      },
+      {
+        id: 'counter', icon: '🔢', name: 'Counter', category: 'Numbers',
+        desc: 'A number animates from 0 to a target value with smooth easing.',
+        keywords: ['count', 'counter', 'number', 'increment', 'odometer', 'tally'],
+        needsImage: false,
+        fields: [
+          { id: 'target',   label: 'Target number',  type: 'number', default: 1000, min: 1 },
+          { id: 'label',    label: 'Label below',    type: 'text',   placeholder: 'Users' },
+          { id: 'bgColor',  label: 'Background',     type: 'color',  presets: ['#0d1117','#1a0533','#000000','gradient'] },
+          { id: 'gradient', label: 'Gradient number',type: 'toggle', default: false },
+          { id: 'duration', label: 'Duration (s)',   type: 'number', default: 5, min: 1, max: 30 },
+        ],
+        examples: ['Count up to 1000 Users', 'Counter reaching 10000 subscribers'],
+        promptFn: function(f) {
+          var t = f.target || 1000;
+          return 'count up to ' + t + (f.label ? ' ' + f.label : '')
+            + (f.gradient ? ' gradient' : '')
+            + ' on ' + colorName(f.bgColor||'#0d1117') + ' background, ' + (f.duration||5) + ' seconds';
+        },
+      },
+    ];
+
+    // ── Color helpers ─────────────────────────────────────────────────────────
+    var COLOR_PRESETS = {
+      '#0d1117': 'dark', '#1a0533': 'dark purple', '#2d0a4e': 'purple',
+      '#000000': 'black', '#ffffff': 'white', '#0d2137': 'dark blue',
+      '#0d2a1a': 'dark green', '#2a0d0d': 'dark red', 'gradient': 'gradient'
+    };
+    function colorName(hex) { return COLOR_PRESETS[hex] || hex; }
+
+    var SWATCH_LABELS = {
+      '#0d1117': 'Dark', '#1a0533': 'Purple', '#2d0a4e': 'Violet', '#000000': 'Black',
+      '#ffffff': 'White', '#0d2137': 'Navy', '#0d2a1a': 'Forest', '#2a0d0d': 'Crimson',
+      '#7c3aed': 'Indigo', '#2563eb': 'Blue', '#60a5fa': 'Sky',
+      '#50fa7b': 'Green', '#ff79c6': 'Pink', '#a78bfa': 'Lavender',
+    };
+
+    // ── State ─────────────────────────────────────────────────────────────────
+    var currentTemplate = null;
+    var fieldValues = {};
+    var templateImages = [];  // for templates that support images
+
+    // ── Build sidebar list ────────────────────────────────────────────────────
+    function renderSidebar(list) {
+      var list2 = list || TEMPLATES;
+      var html = '';
+      list2.forEach(function(t) {
+        html += '<div class="tpl-card-item' + (currentTemplate && currentTemplate.id === t.id ? ' active' : '') + '" onclick="selectTemplate(\'' + t.id + '\')">'
+          + '<span class="tpl-icon">' + t.icon + '</span>'
+          + '<div><div class="tpl-name">' + t.name + '</div>'
+          + '<div class="tpl-keywords">' + t.keywords.slice(0,3).join(' · ') + '</div></div>'
+          + '</div>';
+      });
+      document.getElementById('tpl-card-list').innerHTML = html;
+    }
+
+    // ── Template search ───────────────────────────────────────────────────────
+    function searchTemplates(query) {
+      var q = query.toLowerCase().trim();
+      var matchEl = document.getElementById('search-match');
+      if (!q) { matchEl.style.display = 'none'; renderSidebar(); return; }
+
+      // Score each template
+      var scored = TEMPLATES.map(function(t) {
+        var score = 0;
+        t.keywords.forEach(function(k) { if (q.includes(k) || k.includes(q)) score += 3; });
+        if (t.name.toLowerCase().includes(q)) score += 5;
+        if (t.desc.toLowerCase().includes(q)) score += 1;
+        t.examples.forEach(function(e) { if (e.toLowerCase().includes(q)) score += 2; });
+        return { t: t, score: score };
+      }).filter(function(x) { return x.score > 0; }).sort(function(a, b) { return b.score - a.score; });
+
+      if (scored.length > 0) {
+        var best = scored[0].t;
+        matchEl.textContent = '✅ Best match: ' + best.icon + ' ' + best.name + ' — click to use';
+        matchEl.style.display = 'block';
+        matchEl.onclick = function() { selectTemplate(best.id); };
+        renderSidebar(scored.map(function(x) { return x.t; }));
+      } else {
+        matchEl.textContent = '❓ No matching template — try the Studio with your prompt';
+        matchEl.style.display = 'block';
+        matchEl.onclick = function() { window.location.href = 'index.html'; };
+        renderSidebar([]);
+      }
+    }
+
+    // ── Select template ───────────────────────────────────────────────────────
+    function selectTemplate(id) {
+      var tpl = TEMPLATES.find(function(t) { return t.id === id; });
+      if (!tpl) return;
+      currentTemplate = tpl;
+      fieldValues = {};
+      templateImages = [];
+      // Update URL so the selected template is bookmarkable/shareable
+      var url = new URL(window.location.href);
+      url.searchParams.set('tpl', id);
+      history.pushState({ tpl: id }, '', url.toString());
+      renderSidebar();
+      renderConfig(tpl);
+    }
+
+    // Handle browser back/forward
+    window.addEventListener('popstate', function(e) {
+      var params = new URLSearchParams(window.location.search);
+      var id = params.get('tpl');
+      if (id) {
+        var tpl = TEMPLATES.find(function(t) { return t.id === id; });
+        if (tpl) { currentTemplate = tpl; fieldValues = {}; templateImages = []; renderSidebar(); renderConfig(tpl); }
+      } else {
+        currentTemplate = null; renderSidebar();
+        document.getElementById('tpl-config').innerHTML = '<div class="card" style="text-align:center;padding:48px 24px;color:var(--text-muted)"><div style="font-size:48px;margin-bottom:12px">👈</div><p>Select a template from the list on the left to configure it.</p></div>';
+      }
+    });
+
+    // ── Render config panel ───────────────────────────────────────────────────
+    function renderConfig(tpl) {
+      var panel = document.getElementById('tpl-config');
+      var html = '';
+
+      // Header
+      html += '<div class="card"><div class="tpl-header">'
+        + '<span class="big-icon">' + tpl.icon + '</span>'
+        + '<div><h2>' + tpl.name + '</h2><p>' + tpl.desc + '</p></div>'
+        + '</div></div>';
+
+      // Fields card
+      html += '<div class="card"><div class="card-title">⚙️ Configuration</div><div style="display:flex;flex-direction:column;gap:16px">';
+
+      tpl.fields.forEach(function(f) {
+        html += '<div class="field-row"><label>' + f.label + '</label>';
+        if (f.type === 'text') {
+          html += '<input type="text" id="f_' + f.id + '" placeholder="' + (f.placeholder||'') + '" value="' + (fieldValues[f.id]||f.default||'') + '" oninput="setField(\'' + f.id + '\',this.value)" />';
+        } else if (f.type === 'textarea') {
+          html += '<textarea id="f_' + f.id + '" placeholder="' + (f.placeholder||'') + '" oninput="setField(\'' + f.id + '\',this.value)">' + (fieldValues[f.id]||f.default||'') + '</textarea>';
+        } else if (f.type === 'number') {
+          html += '<input type="number" id="f_' + f.id + '" value="' + (fieldValues[f.id]||f.default||5) + '" min="' + (f.min||1) + '" max="' + (f.max||999) + '" oninput="setField(\'' + f.id + '\',parseFloat(this.value))" />';
+        } else if (f.type === 'select') {
+          html += '<select id="f_' + f.id + '" onchange="setField(\'' + f.id + '\',this.value)">';
+          (f.options||[]).forEach(function(o) {
+            html += '<option value="' + o + '"' + ((fieldValues[f.id]||f.default)===o?' selected':'') + '>' + o + '</option>';
+          });
+          html += '</select>';
+        } else if (f.type === 'toggle') {
+          var checked = fieldValues[f.id] !== undefined ? fieldValues[f.id] : (f.default || false);
+          html += '<label style="display:flex;align-items:center;gap:8px;cursor:pointer">'
+            + '<input type="checkbox" id="f_' + f.id + '" ' + (checked?'checked':'') + ' onchange="setField(\'' + f.id + '\',this.checked)" style="width:16px;height:16px;accent-color:var(--accent)">'
+            + '<span style="font-size:13px;color:var(--text-secondary)">Enabled</span></label>';
+        } else if (f.type === 'color') {
+          var curColor = fieldValues[f.id] || (f.presets && f.presets[0]) || '#0d1117';
+          html += '<div class="color-row">';
+          (f.presets||[]).forEach(function(hex) {
+            var isGrad = hex === 'gradient';
+            html += '<div class="color-swatch' + (curColor===hex?' active':'') + '" '
+              + 'title="' + (isGrad ? 'Gradient' : hex) + '" '
+              + 'onclick="setColorField(\'' + f.id + '\',\'' + hex + '\')" '
+              + 'style="background:' + (isGrad ? 'linear-gradient(135deg,#7c3aed,#3b82f6)' : hex) + ';border-color:' + (curColor===hex?'white':'transparent') + '">'
+              + '</div>';
+          });
+          html += '<div class="color-input-wrap" style="margin-left:8px">'
+            + '<input type="color" id="f_color_' + f.id + '" value="' + (curColor.startsWith('#')?curColor:'#0d1117') + '" oninput="setColorField(\'' + f.id + '\',this.value)" />'
+            + '<span style="font-size:12px;color:var(--text-muted)" id="f_color_label_' + f.id + '">' + colorName(curColor) + '</span>'
+            + '</div>';
+          html += '</div>';
+          html += '<input type="hidden" id="f_' + f.id + '" value="' + curColor + '" />';
+        }
+        html += '</div>';
+      });
+
+      html += '</div></div>';
+
+      // Image upload (only for templates that support images)
+      if (tpl.needsImage) {
+        html += '<div class="card"><div class="card-title">🖼️ Image (optional)</div>'
+          + '<div class="img-drop-mini" onclick="document.getElementById(\'tpl-file-input\').click()" ondragover="tplDragOver(event)" ondrop="tplDrop(event)">'
+          + '📁 Click or drag an image here</div>'
+          + '<input type="file" id="tpl-file-input" accept="image/*" style="display:none" onchange="tplFileChosen(this)" />'
+          + '<div class="img-thumbs" id="tpl-img-thumbs"></div>'
+          + '</div>';
+      }
+
+      // Example prompts
+      html += '<div class="card"><div class="card-title">💡 Example prompts</div>'
+        + '<div class="example-chips">';
+      tpl.examples.forEach(function(e) {
+        html += '<span class="ex-chip" onclick="useExamplePrompt(\'' + e.replace(/'/g,"\\'") + '\')">' + e + '</span>';
+      });
+      html += '</div></div>';
+
+      // CTA
+      html += '<div class="card"><div class="tpl-cta">'
+        + '<button class="btn btn-primary" onclick="generateFromTemplate()">🎬 Generate in Studio</button>'
+        + '<button class="btn btn-secondary" onclick="copyTemplatePrompt()">📋 Copy prompt</button>'
+        + '</div></div>';
+
+      panel.innerHTML = html;
+    }
+
+    // ── Field helpers ─────────────────────────────────────────────────────────
+    function setField(id, val) { fieldValues[id] = val; }
+
+    function setColorField(id, hex) {
+      fieldValues[id] = hex;
+      document.getElementById('f_' + id).value = hex;
+      // Update swatch borders
+      var row = document.getElementById('f_' + id).parentElement;
+      row.querySelectorAll('.color-swatch').forEach(function(sw) {
+        sw.style.borderColor = sw.title === hex || sw.title === colorName(hex) ? 'white' : 'transparent';
+        sw.classList.toggle('active', sw.title === hex || sw.title === colorName(hex));
+      });
+      var label = document.getElementById('f_color_label_' + id);
+      if (label) label.textContent = colorName(hex);
+      var picker = document.getElementById('f_color_' + id);
+      if (picker && hex.startsWith('#')) picker.value = hex;
+    }
+
+    function getFieldValues() {
+      var vals = {};
+      if (!currentTemplate) return vals;
+      currentTemplate.fields.forEach(function(f) {
+        var el = document.getElementById('f_' + f.id);
+        if (!el) return;
+        if (f.type === 'toggle') vals[f.id] = el.checked;
+        else if (f.type === 'number') vals[f.id] = parseFloat(el.value) || (f.default || 5);
+        else vals[f.id] = el.value || f.default || '';
+      });
+      return vals;
+    }
+
+    function buildPrompt() {
+      if (!currentTemplate) return '';
+      var vals = getFieldValues();
+      // Merge textarea items into array for stagger
+      if (vals.items) {
+        vals.items = vals.items;
+      }
+      // counter uses target + label as text
+      if (currentTemplate.id === 'counter') {
+        vals.text = vals.label || '';
+      }
+      return currentTemplate.promptFn(vals);
+    }
+
+    // ── Image upload ──────────────────────────────────────────────────────────
+    function tplDragOver(e) { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--accent)'; }
+    function tplDrop(e) {
+      e.preventDefault();
+      e.currentTarget.style.borderColor = '';
+      var file = Array.from(e.dataTransfer.files).find(function(f) { return f.type.startsWith('image/'); });
+      if (file) addTplImage(file);
+    }
+    function tplFileChosen(input) {
+      if (input.files[0]) addTplImage(input.files[0]);
+      input.value = '';
+    }
+    function addTplImage(file) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        templateImages.push(e.target.result);
+        renderTplImageThumbs();
+      };
+      reader.readAsDataURL(file);
+    }
+    function removeTplImage(i) { templateImages.splice(i, 1); renderTplImageThumbs(); }
+    function renderTplImageThumbs() {
+      var el = document.getElementById('tpl-img-thumbs');
+      if (!el) return;
+      el.innerHTML = templateImages.map(function(src, i) {
+        return '<div class="img-thumb-mini"><img src="' + src + '" />'
+          + '<button class="rm" onclick="removeTplImage(' + i + ')">✕</button></div>';
+      }).join('');
+    }
+
+    // ── Actions ───────────────────────────────────────────────────────────────
+    function copyTemplatePrompt() {
+      var p = buildPrompt();
+      if (!p) return;
+      navigator.clipboard.writeText(p).then(function() {
+        var btn = event.target;
+        btn.textContent = '✅ Copied!';
+        setTimeout(function() { btn.textContent = '📋 Copy prompt'; }, 1800);
+      });
+    }
+
+    function useExamplePrompt(example) {
+      // Populate the search box and jump to Studio
+      sessionStorage.setItem('remotion_studio_prompt', example);
+      window.location.href = 'index.html';
+    }
+
+    function generateFromTemplate() {
+      var prompt = buildPrompt();
+      if (!prompt) { alert('Configure the template fields first.'); return; }
+      sessionStorage.setItem('remotion_studio_prompt', prompt);
+      if (templateImages.length > 0) {
+        sessionStorage.setItem('remotion_studio_images', JSON.stringify(templateImages));
+      }
+      window.location.href = 'index.html';
+    }
+
+    // ── Init ──────────────────────────────────────────────────────────────────
+    renderSidebar();
+
+    // Auto-select from URL param ?tpl=fade
+    var urlParams = new URLSearchParams(window.location.search);
+    var urlTpl = urlParams.get('tpl');
+    if (urlTpl) selectTemplate(urlTpl);
+  </script>
+
+  <!-- Accept session prompt/images from templates page in Studio -->
+  <script>
+    // This runs on index.html but it's inlined here for the templates→studio handoff
+    // The actual loading is in index.html window.onload
+  </script>
+</body>
+</html>
