@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⚡ Claude Performance Calculator — Remotion Prompt Studio</title>
+  <link rel="stylesheet" href="../assets/styles.css" />
+  <style>
+    /* ── Page layout ── */
+    .perf-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    @media (max-width: 860px) { .perf-layout { grid-template-columns: 1fr; } }
+
+    /* ── Model card ── */
+    .model-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .model-card:hover { border-color: var(--accent); }
+    .model-card.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-glow);
+    }
+    .model-card .badge {
+      position: absolute;
+      top: 12px; right: 12px;
+      font-size: 10px; font-weight: 700;
+      padding: 2px 8px; border-radius: 12px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .badge-fast   { background: rgba(63,185,80,0.15); color: #3fb950; border: 1px solid #3fb950; }
+    .badge-bal    { background: rgba(124,58,237,0.15); color: #a78bfa; border: 1px solid #a78bfa; }
+    .badge-cap    { background: rgba(210,153,34,0.15); color: #d29922; border: 1px solid #d29922; }
+
+    .model-name { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+    .model-id   { font-size: 11px; color: var(--text-muted); font-family: monospace; margin-bottom: 12px; }
+
+    .model-stats {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    }
+    .stat-pill {
+      background: var(--bg-tertiary); border-radius: var(--radius);
+      padding: 8px 10px;
+    }
+    .stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .stat-value { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-top: 2px; }
+    .stat-value.accent { color: var(--accent-light); }
+
+    /* ── Speed bar ── */
+    .speed-bar-wrap { margin-top: 12px; }
+    .speed-bar-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; display: flex; justify-content: space-between; }
+    .speed-bar { height: 6px; background: var(--bg-tertiary); border-radius: 3px; overflow: hidden; }
+    .speed-bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
+
+    /* ── Calculator panel ── */
+    .calc-panel { display: flex; flex-direction: column; gap: 16px; }
+
+    .result-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    .result-box {
+      background: var(--bg-tertiary); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 16px; text-align: center;
+    }
+    .result-box.highlight {
+      background: var(--accent-glow); border-color: var(--accent);
+    }
+    .result-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+    .result-value { font-size: 28px; font-weight: 800; color: var(--text-primary); line-height: 1; }
+    .result-unit  { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+
+    /* ── Formula display ── */
+    .formula-box {
+      background: var(--bg-primary); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px;
+      font-family: monospace; font-size: 13px; color: var(--text-secondary);
+      line-height: 1.8;
+    }
+    .formula-box .hl { color: var(--accent-light); font-weight: 700; }
+    .formula-box .val { color: #50fa7b; }
+
+    /* ── Comparison table ── */
+    .compare-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .compare-table th {
+      background: var(--bg-tertiary); color: var(--text-secondary);
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border);
+    }
+    .compare-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table tr.highlight-row td { background: var(--accent-glow); }
+    .compare-table td.mono { font-family: monospace; font-size: 12px; color: var(--text-muted); }
+
+    /* ── Token ruler ── */
+    .ruler { margin-top: 8px; }
+    .ruler-row { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+    .ruler-label { width: 100px; font-size: 12px; color: var(--text-secondary); text-align: right; flex-shrink: 0; }
+    .ruler-bar { flex: 1; height: 20px; background: var(--bg-tertiary); border-radius: 4px; position: relative; overflow: hidden; }
+    .ruler-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 8px; font-size: 11px; font-weight: 700; color: white; transition: width 0.4s; }
+    .ruler-val  { width: 80px; text-align: right; font-size: 12px; color: var(--text-muted); flex-shrink: 0; }
+
+    .range-input { width: 100%; accent-color: var(--accent); cursor: pointer; }
+
+    /* ── Tabs ── */
+    .tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+    .tab-btn {
+      background: var(--bg-tertiary); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 8px 16px; font-size: 13px;
+      cursor: pointer; color: var(--text-secondary); transition: all 0.15s;
+    }
+    .tab-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+  </style>
+</head>
+<body data-root="../">
+
+  <!-- Debug Nav -->
+  <nav id="debug-nav"></nav>
+
+  <!-- Main Nav -->
+  <nav id="main-nav">
+    <a href="../index.html" class="nav-logo">🎬 <span>Remotion</span> Studio</a>
+    <div id="nav-search-container">
+      <input type="text" id="nav-search" placeholder="Search..." autocomplete="off" />
+      <span class="search-icon">🔍</span>
+      <div id="search-dropdown"></div>
+    </div>
+    <div id="content-nav-items"></div>
+    <div class="nav-actions">
+      <a href="https://github.com/rifaterdemsahin/remotion-with-a-prompt" target="_blank" class="nav-social-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.09.68-.22.68-.48l-.01-1.69c-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0112 6.8c.85.004 1.71.11 2.51.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85l-.01 2.75c0 .27.18.58.69.48A10.02 10.02 0 0022 12c0-5.52-4.48-10-10-10z"/></svg></a>
+      <a href="https://www.linkedin.com/in/rifaterdemsahin/" target="_blank" class="nav-social-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+      <a href="https://www.youtube.com/@RifatErdemSahin" target="_blank" class="nav-social-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+      <button id="debug-toggle-btn" onclick="window.toggleDebug()">🐛</button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <div class="hero" style="padding-bottom:8px">
+    <h1>⚡ Claude Performance Calculator</h1>
+    <p>Estimate response time, cost, and token counts for every Claude model.</p>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px">
+      <a href="../markdown_renderer.html?file=4_Formula/claude-performance.md" class="btn btn-secondary btn-sm">📄 View Formula Doc</a>
+      <a href="../4_Formula/index.html" class="btn btn-secondary btn-sm">← Back to Formula</a>
+    </div>
+  </div>
+
+  <div class="perf-layout">
+
+    <!-- LEFT: Model picker + Calculator inputs -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <!-- Model selector -->
+      <div>
+        <div class="card-title">🤖 Select Model</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+
+          <div class="model-card selected" id="card-haiku" onclick="selectModel('haiku')">
+            <span class="badge badge-fast">Fastest</span>
+            <div class="model-name">Haiku 4.5</div>
+            <div class="model-id">claude-haiku-4-5-20251001</div>
+            <div class="model-stats">
+              <div class="stat-pill"><div class="stat-label">Speed</div><div class="stat-value accent">~250 tok/s</div></div>
+              <div class="stat-pill"><div class="stat-label">TTFT</div><div class="stat-value">~0.5 s</div></div>
+              <div class="stat-pill"><div class="stat-label">Input</div><div class="stat-value">$0.80/1M</div></div>
+              <div class="stat-pill"><div class="stat-label">Output</div><div class="stat-value">$4.00/1M</div></div>
+            </div>
+            <div class="speed-bar-wrap">
+              <div class="speed-bar-label"><span>Throughput</span><span>250 tok/s</span></div>
+              <div class="speed-bar"><div class="speed-bar-fill" style="width:100%;background:#3fb950"></div></div>
+            </div>
+          </div>
+
+          <div class="model-card" id="card-sonnet" onclick="selectModel('sonnet')">
+            <span class="badge badge-bal">Balanced</span>
+            <div class="model-name">Sonnet 4.6</div>
+            <div class="model-id">claude-sonnet-4-6</div>
+            <div class="model-stats">
+              <div class="stat-pill"><div class="stat-label">Speed</div><div class="stat-value accent">~100 tok/s</div></div>
+              <div class="stat-pill"><div class="stat-label">TTFT</div><div class="stat-value">~1.0 s</div></div>
+              <div class="stat-pill"><div class="stat-label">Input</div><div class="stat-value">$3.00/1M</div></div>
+              <div class="stat-pill"><div class="stat-label">Output</div><div class="stat-value">$15.00/1M</div></div>
+            </div>
+            <div class="speed-bar-wrap">
+              <div class="speed-bar-label"><span>Throughput</span><span>100 tok/s</span></div>
+              <div class="speed-bar"><div class="speed-bar-fill" style="width:40%;background:#a78bfa"></div></div>
+            </div>
+          </div>
+
+          <div class="model-card" id="card-opus" onclick="selectModel('opus')">
+            <span class="badge badge-cap">Most Capable</span>
+            <div class="model-name">Opus 4.6</div>
+            <div class="model-id">claude-opus-4-6</div>
+            <div class="model-stats">
+              <div class="stat-pill"><div class="stat-label">Speed</div><div class="stat-value accent">~55 tok/s</div></div>
+              <div class="stat-pill"><div class="stat-label">TTFT</div><div class="stat-value">~2.0 s</div></div>
+              <div class="stat-pill"><div class="stat-label">Input</div><div class="stat-value">$15.00/1M</div></div>
+              <div class="stat-pill"><div class="stat-label">Output</div><div class="stat-value">$75.00/1M</div></div>
+            </div>
+            <div class="speed-bar-wrap">
+              <div class="speed-bar-label"><span>Throughput</span><span>55 tok/s</span></div>
+              <div class="speed-bar"><div class="speed-bar-fill" style="width:22%;background:#d29922"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inputs -->
+      <div class="card">
+        <div class="card-title">🎛️ Token Inputs</div>
+
+        <div class="form-group">
+          <label>Input tokens: <strong id="in-tok-label" style="color:var(--accent-light)">1,000</strong>
+            <span style="color:var(--text-muted);font-weight:400"> ≈ <span id="in-words">750</span> words</span>
+          </label>
+          <input type="range" class="range-input" id="in-tokens" min="0" max="200000" step="100" value="1000" oninput="recalc()" />
+        </div>
+
+        <div class="form-group">
+          <label>Output tokens: <strong id="out-tok-label" style="color:var(--accent-light)">500</strong>
+            <span style="color:var(--text-muted);font-weight:400"> ≈ <span id="out-words">375</span> words</span>
+          </label>
+          <input type="range" class="range-input" id="out-tokens" min="0" max="8192" step="10" value="500" oninput="recalc()" />
+        </div>
+
+        <div class="form-group" style="margin-bottom:0">
+          <label>Custom TTFT (s): <strong id="ttft-label" style="color:var(--accent-light)">auto</strong></label>
+          <input type="range" class="range-input" id="ttft-override" min="0" max="5" step="0.1" value="0" oninput="recalc()" />
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px">0 = use model default</div>
+        </div>
+
+        <!-- Preset buttons -->
+        <div style="margin-top:12px">
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Quick presets:</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <button class="btn btn-secondary btn-sm" onclick="setPreset(100,400)">Remotion snippet</button>
+            <button class="btn btn-secondary btn-sm" onclick="setPreset(500,1000)">Short chat reply</button>
+            <button class="btn btn-secondary btn-sm" onclick="setPreset(2000,4000)">Long analysis</button>
+            <button class="btn btn-secondary btn-sm" onclick="setPreset(8000,8192)">Max context</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Results + formula + comparison -->
+    <div class="calc-panel">
+
+      <!-- Results -->
+      <div class="card">
+        <div class="card-title" id="result-model-label">⚡ Results — Haiku 4.5</div>
+        <div class="result-grid">
+          <div class="result-box highlight">
+            <div class="result-label">⏱️ Total Time</div>
+            <div class="result-value" id="r-time">—</div>
+            <div class="result-unit">seconds</div>
+          </div>
+          <div class="result-box">
+            <div class="result-label">💰 Estimated Cost</div>
+            <div class="result-value" id="r-cost">—</div>
+            <div class="result-unit" id="r-cost-unit">USD</div>
+          </div>
+          <div class="result-box">
+            <div class="result-label">🔡 Total Tokens</div>
+            <div class="result-value" id="r-tokens">—</div>
+            <div class="result-unit">in + out</div>
+          </div>
+          <div class="result-box">
+            <div class="result-label">📝 Output Words</div>
+            <div class="result-value" id="r-words">—</div>
+            <div class="result-unit">≈ words (×0.75)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formula breakdown -->
+      <div class="card">
+        <div class="card-title">📐 Formula Breakdown</div>
+        <div class="formula-box" id="formula-box">
+          Select a model and adjust sliders to see the live formula.
+        </div>
+      </div>
+
+      <!-- Tabs: comparison / token ruler -->
+      <div class="card" style="flex:1">
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('compare')">📊 All Models</button>
+          <button class="tab-btn" onclick="switchTab('ruler')">📏 Token Ruler</button>
+          <button class="tab-btn" onclick="switchTab('batch')">🔁 Batch</button>
+        </div>
+
+        <!-- Comparison tab -->
+        <div id="tab-compare" class="tab-panel active">
+          <table class="compare-table" id="compare-table">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Time (s)</th>
+                <th>Cost (USD)</th>
+                <th>tok/s</th>
+              </tr>
+            </thead>
+            <tbody id="compare-body"></tbody>
+          </table>
+        </div>
+
+        <!-- Token ruler tab -->
+        <div id="tab-ruler" class="tab-panel">
+          <div class="ruler" id="token-ruler"></div>
+        </div>
+
+        <!-- Batch tab -->
+        <div id="tab-batch" class="tab-panel">
+          <div class="form-group">
+            <label>Number of requests in batch</label>
+            <input type="number" id="batch-count" value="10" min="1" max="10000" oninput="recalc()" style="max-width:120px" />
+          </div>
+          <div class="formula-box" id="batch-result" style="margin-top:8px"></div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:8px">
+            💡 Batch API offers ~50% cost discount but adds minutes of queue latency.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>⚡ Claude Performance Calculator &nbsp;|&nbsp;
+      <a href="../markdown_renderer.html?file=4_Formula/claude-performance.md">Formula Doc</a> &nbsp;|&nbsp;
+      <a href="https://www.anthropic.com/pricing" target="_blank">Anthropic Pricing ↗</a> &nbsp;|&nbsp;
+      <a href="https://docs.anthropic.com/en/docs/about-claude/models" target="_blank">Models Docs ↗</a>
+    </p>
+  </footer>
+
+  <script src="../assets/nav-component.js"></script>
+  <script>
+    // ── Model data ────────────────────────────────────────────────────────────
+    var models = {
+      haiku: {
+        name: 'Haiku 4.5',
+        id: 'claude-haiku-4-5-20251001',
+        tps: 250,
+        ttft: 0.5,
+        inputPricePerM: 0.80,
+        outputPricePerM: 4.00,
+        color: '#3fb950'
+      },
+      sonnet: {
+        name: 'Sonnet 4.6',
+        id: 'claude-sonnet-4-6',
+        tps: 100,
+        ttft: 1.0,
+        inputPricePerM: 3.00,
+        outputPricePerM: 15.00,
+        color: '#a78bfa'
+      },
+      opus: {
+        name: 'Opus 4.6',
+        id: 'claude-opus-4-6',
+        tps: 55,
+        ttft: 2.0,
+        inputPricePerM: 15.00,
+        outputPricePerM: 75.00,
+        color: '#d29922'
+      }
+    };
+
+    var selectedModel = 'haiku';
+
+    // ── Model selection ───────────────────────────────────────────────────────
+    function selectModel(key) {
+      selectedModel = key;
+      Object.keys(models).forEach(function(k) {
+        var card = document.getElementById('card-' + k);
+        if (card) card.classList.toggle('selected', k === key);
+      });
+      recalc();
+    }
+
+    // ── Preset ───────────────────────────────────────────────────────────────
+    function setPreset(inTok, outTok) {
+      document.getElementById('in-tokens').value = inTok;
+      document.getElementById('out-tokens').value = outTok;
+      recalc();
+    }
+
+    // ── Tab switch ────────────────────────────────────────────────────────────
+    function switchTab(name) {
+      document.querySelectorAll('.tab-btn').forEach(function(b, i) {
+        var tabNames = ['compare', 'ruler', 'batch'];
+        b.classList.toggle('active', tabNames[i] === name);
+      });
+      document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+      document.getElementById('tab-' + name).classList.add('active');
+    }
+
+    // ── Core calculation ──────────────────────────────────────────────────────
+    function calcFor(modelKey, inTok, outTok, ttftOverride) {
+      var m = models[modelKey];
+      var ttft = ttftOverride > 0 ? ttftOverride : m.ttft;
+      var streamTime = outTok / m.tps;
+      var totalTime = ttft + streamTime;
+      var cost = (inTok / 1e6 * m.inputPricePerM) + (outTok / 1e6 * m.outputPricePerM);
+      return { totalTime: totalTime, streamTime: streamTime, ttft: ttft, cost: cost };
+    }
+
+    function formatTime(s) {
+      if (s < 60) return s.toFixed(1);
+      return Math.floor(s/60) + 'm ' + (s % 60).toFixed(0) + 's';
+    }
+
+    function formatCost(c) {
+      if (c === 0) return '$0.00';
+      if (c < 0.001) return '$' + (c * 1000).toFixed(3) + 'm'; // millicents
+      if (c < 1) return '$' + c.toFixed(4);
+      return '$' + c.toFixed(2);
+    }
+
+    function formatNum(n) {
+      return n.toLocaleString();
+    }
+
+    // ── Recalculate everything ────────────────────────────────────────────────
+    function recalc() {
+      var inTok  = parseInt(document.getElementById('in-tokens').value)  || 0;
+      var outTok = parseInt(document.getElementById('out-tokens').value) || 0;
+      var ttftOv = parseFloat(document.getElementById('ttft-override').value) || 0;
+      var m = models[selectedModel];
+
+      // Update slider labels
+      document.getElementById('in-tok-label').textContent  = formatNum(inTok);
+      document.getElementById('out-tok-label').textContent = formatNum(outTok);
+      document.getElementById('in-words').textContent  = formatNum(Math.round(inTok  * 0.75));
+      document.getElementById('out-words').textContent = formatNum(Math.round(outTok * 0.75));
+      var ttftLabel = ttftOv > 0 ? ttftOv.toFixed(1) + 's' : 'auto (' + m.ttft + 's)';
+      document.getElementById('ttft-label').textContent = ttftLabel;
+
+      // Main calculation
+      var r = calcFor(selectedModel, inTok, outTok, ttftOv);
+
+      document.getElementById('result-model-label').textContent = '⚡ Results — ' + m.name;
+      document.getElementById('r-time').textContent   = formatTime(r.totalTime);
+      document.getElementById('r-cost').textContent   = formatCost(r.cost);
+      document.getElementById('r-tokens').textContent = formatNum(inTok + outTok);
+      document.getElementById('r-words').textContent  = formatNum(Math.round(outTok * 0.75));
+
+      // Formula box
+      var fBox = document.getElementById('formula-box');
+      fBox.innerHTML =
+        '<div style="color:var(--text-muted);margin-bottom:4px">// ── Time ──────────────────────────</div>' +
+        'total_time = <span class="hl">TTFT</span> + (<span class="hl">output_tokens</span> / <span class="hl">tok_per_sec</span>)\n' +
+        '           = <span class="val">' + r.ttft.toFixed(1) + 's</span>' +
+        ' + (' + '<span class="val">' + formatNum(outTok) + '</span>' +
+        ' / <span class="val">' + m.tps + '</span>)\n' +
+        '           = <span class="val">' + r.ttft.toFixed(1) + 's</span>' +
+        ' + <span class="val">' + r.streamTime.toFixed(1) + 's</span>' +
+        '  →  <span class="hl" style="font-size:15px">' + formatTime(r.totalTime) + 's</span>\n\n' +
+
+        '<div style="color:var(--text-muted);margin-top:4px;margin-bottom:4px">// ── Cost ──────────────────────────</div>' +
+        'cost = (<span class="val">' + formatNum(inTok) + '</span> / 1M × $<span class="val">' + m.inputPricePerM.toFixed(2) + '</span>)\n' +
+        '     + (<span class="val">' + formatNum(outTok) + '</span> / 1M × $<span class="val">' + m.outputPricePerM.toFixed(2) + '</span>)\n' +
+        '     = $<span class="val">' + (inTok / 1e6 * m.inputPricePerM).toFixed(6) + '</span>' +
+        ' + $<span class="val">' + (outTok / 1e6 * m.outputPricePerM).toFixed(6) + '</span>' +
+        '  →  <span class="hl" style="font-size:15px">' + formatCost(r.cost) + '</span>\n\n' +
+
+        '<div style="color:var(--text-muted);margin-top:4px;margin-bottom:4px">// ── Words ─────────────────────────</div>' +
+        'words ≈ output_tokens × 0.75\n' +
+        '      ≈ <span class="val">' + formatNum(outTok) + '</span> × 0.75' +
+        '  →  <span class="hl" style="font-size:15px">~' + formatNum(Math.round(outTok * 0.75)) + ' words</span>';
+
+      // Comparison table
+      var tbody = document.getElementById('compare-body');
+      tbody.innerHTML = Object.keys(models).map(function(key) {
+        var rc = calcFor(key, inTok, outTok, ttftOv);
+        var isSelected = key === selectedModel;
+        return '<tr class="' + (isSelected ? 'highlight-row' : '') + '">' +
+          '<td><strong>' + models[key].name + '</strong>' +
+          (isSelected ? ' <span style="color:var(--accent-light);font-size:11px">← selected</span>' : '') + '</td>' +
+          '<td><strong>' + formatTime(rc.totalTime) + 's</strong></td>' +
+          '<td><strong>' + formatCost(rc.cost) + '</strong></td>' +
+          '<td class="mono">' + models[key].tps + ' tok/s</td>' +
+          '</tr>';
+      }).join('');
+
+      // Token ruler
+      var ruler = document.getElementById('token-ruler');
+      var rulerData = [
+        { label: 'In-tokens', value: inTok, max: 200000, color: '#3b82f6' },
+        { label: 'Out-tokens', value: outTok, max: 8192, color: '#7c3aed' },
+        { label: 'Out-words', value: Math.round(outTok * 0.75), max: 6144, color: '#ec4899' },
+        { label: 'Out-chars', value: outTok * 4, max: 32768, color: '#f59e0b' },
+        { label: 'Context%', value: Math.round((inTok + outTok) / 2000), max: 100, color: '#10b981' },
+      ];
+      ruler.innerHTML = rulerData.map(function(d) {
+        var pct = Math.min(100, d.max > 0 ? (d.value / d.max * 100) : 0);
+        return '<div class="ruler-row">' +
+          '<div class="ruler-label">' + d.label + '</div>' +
+          '<div class="ruler-bar"><div class="ruler-fill" style="width:' + pct + '%;background:' + d.color + '">' +
+          (pct > 15 ? formatNum(d.value) : '') +
+          '</div></div>' +
+          '<div class="ruler-val">' + (pct <= 15 ? formatNum(d.value) : '') + '</div>' +
+          '</div>';
+      }).join('');
+
+      // Batch tab
+      var batchCount = parseInt(document.getElementById('batch-count').value) || 10;
+      var batchCostNormal = r.cost * batchCount;
+      var batchCostDiscount = batchCostNormal * 0.5;
+      var batchResult = document.getElementById('batch-result');
+      batchResult.innerHTML =
+        '<div style="color:var(--text-muted);margin-bottom:4px">// ' + batchCount + ' requests × (' + formatNum(inTok) + ' in + ' + formatNum(outTok) + ' out tok)</div>' +
+        'total_tokens = <span class="hl val">' + formatNum((inTok + outTok) * batchCount) + '</span>\n' +
+        'total_cost   = <span class="hl val">' + formatCost(batchCostNormal) + '</span>  (standard API)\n' +
+        'batch_cost   = <span class="hl val">' + formatCost(batchCostDiscount) + '</span>  (50% Batch API discount)\n' +
+        'savings      = <span class="hl val">' + formatCost(batchCostNormal - batchCostDiscount) + '</span>';
+    }
+
+    // Init
+    recalc();
+  </script>
+</body>
+</html>

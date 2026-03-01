@@ -103,5 +103,19 @@
     "description": "Comprehensive checklist for validating all Remotion Prompt Studio features",
     "emoji": "✅",
     "tags": ["checklist", "testing", "validation", "qa", "tests"]
+  },
+  {
+    "title": "Claude Performance Calculator",
+    "url": "4_Formula/claude-performance.html",
+    "description": "Interactive calculator: estimate response time, cost, and token counts for Haiku, Sonnet, and Opus",
+    "emoji": "⚡",
+    "tags": ["claude", "performance", "tokens", "cost", "seconds", "speed", "haiku", "sonnet", "opus", "calculator", "ttft", "latency"]
+  },
+  {
+    "title": "Claude Performance Formula Doc",
+    "url": "4_Formula/claude-performance.md",
+    "description": "All Claude model performance data: tokens/sec, TTFT, cost per million tokens, and formula reference",
+    "emoji": "📄",
+    "tags": ["claude", "performance", "formula", "tokens", "cost", "seconds", "speed", "haiku", "sonnet", "opus", "latency", "pricing"]
   }
 ]
