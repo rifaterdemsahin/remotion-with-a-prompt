@@ -42,6 +42,9 @@
       <a href="../markdown_renderer.html?file=2_Environment/docker-compose.yml" class="folder-card">
         <span class="emoji">🐳</span><h3>Docker Compose</h3><p>Qdrant + Ollama containerized setup for vector search and embeddings.</p>
       </a>
+      <a href="../markdown_renderer.html?file=2_Environment/setup-codespaces.md" class="folder-card">
+        <span class="emoji">☁️</span><h3>GitHub Codespaces</h3><p>Zero-install cloud dev environment — open this repo in a browser and start coding instantly.</p>
+      </a>
     </div>
 
     <div class="card" style="margin-bottom:24px">
@@ -67,7 +70,53 @@
           <strong>Ollama</strong>
           <p style="font-size:12px;color:var(--text-secondary);margin-top:4px">nomic-embed-text model</p>
         </div>
+        <div style="background:var(--bg-tertiary);border-radius:var(--radius);padding:16px">
+          <div style="font-size:24px;margin-bottom:8px">☁️</div>
+          <strong>Codespaces</strong>
+          <p style="font-size:12px;color:var(--text-secondary);margin-top:4px">Browser-based VS Code, instant</p>
+        </div>
       </div>
+    </div>
+
+    <div class="card" style="margin-bottom:24px">
+      <div class="card-title">☁️ GitHub Codespaces</div>
+      <p style="color:var(--text-secondary);margin-bottom:16px">Launch a full VS Code dev environment in your browser — no local install required. Perfect for quick edits, exploration, or working from any machine.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+        <a href="https://codespaces.new/rifaterdemsahin/remotion-with-a-prompt" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;padding:10px 20px;border-radius:var(--radius);text-decoration:none;font-weight:600;font-size:14px">
+          ☁️ Open in Codespaces
+        </a>
+        <a href="https://github.com/rifaterdemsahin/remotion-with-a-prompt" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:var(--bg-tertiary);color:var(--text-primary);padding:10px 20px;border-radius:var(--radius);text-decoration:none;font-weight:600;font-size:14px">
+          🔀 Fork first (recommended)
+        </a>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:16px">
+        <div style="background:var(--bg-tertiary);border-radius:var(--radius);padding:14px">
+          <div style="font-weight:600;margin-bottom:6px">1️⃣ Open Codespace</div>
+          <p style="font-size:13px;color:var(--text-secondary);margin:0">Click <em>Code → Codespaces → Create codespace on main</em> on the GitHub repo page, or use the button above.</p>
+        </div>
+        <div style="background:var(--bg-tertiary);border-radius:var(--radius);padding:14px">
+          <div style="font-weight:600;margin-bottom:6px">2️⃣ Install deps</div>
+          <p style="font-size:13px;color:var(--text-secondary);margin:0">The terminal opens automatically. Run <code>npm install</code> if you want to use Remotion's CLI renderer.</p>
+        </div>
+        <div style="background:var(--bg-tertiary);border-radius:var(--radius);padding:14px">
+          <div style="font-weight:600;margin-bottom:6px">3️⃣ Preview the app</div>
+          <p style="font-size:13px;color:var(--text-secondary);margin:0">Use <em>Live Server</em> or run <code>npx serve .</code> and click the forwarded port URL to open the studio.</p>
+        </div>
+        <div style="background:var(--bg-tertiary);border-radius:var(--radius);padding:14px">
+          <div style="font-weight:600;margin-bottom:6px">4️⃣ Set your xAI key</div>
+          <p style="font-size:13px;color:var(--text-secondary);margin:0">Copy <code>env-config.example.js</code> → <code>env-config.js</code> and paste your key, or use the ⚙️ Settings panel in the app.</p>
+        </div>
+      </div>
+      <pre style="margin:0"><code># In the Codespaces terminal:
+cp env-config.example.js env-config.js
+# Edit env-config.js and add your XAI_API_KEY
+
+# Serve the static site locally (port forwarded automatically):
+npx serve . -p 8080
+
+# Optional: run Remotion studio
+npm install
+npx remotion studio 5_Symbols/src/Root.tsx</code></pre>
     </div>
 
     <div class="card">
