@@ -1,7 +1,8 @@
 [
-  { "label": "Prompt Studio", "url": "index.html", "emoji": "🎬" },
+  { "label": "Studio", "url": "index.html", "emoji": "🎬" },
+  { "label": "Templates", "url": "templates.html", "emoji": "🎨" },
+  { "label": "Sandbox", "url": "sandbox.html", "emoji": "🧪" },
   { "label": "How It Works", "url": "4_Formula/index.html", "emoji": "📐" },
-  { "label": "Gallery", "url": "3_Simulation/index.html", "emoji": "🎨" },
   { "label": "Code Reference", "url": "5_Symbols/index.html", "emoji": "💻" },
   { "label": "Setup Guide", "url": "2_Environment/index.html", "emoji": "🌍" },
   { "label": "Test Results", "url": "7_Testing_Known/index.html", "emoji": "🧪" }

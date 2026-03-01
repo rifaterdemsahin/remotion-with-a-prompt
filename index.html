@@ -337,72 +337,10 @@
   </nav>
 
   <!-- Hero -->
-  <div class="hero">
+  <div class="hero" style="padding-bottom:8px">
     <h1>🎬 Remotion Studio</h1>
-    <p>Transform text prompts into Remotion video compositions. Type your vision, upload images, and get production-ready TSX code instantly. &nbsp;<a href="templates.html" style="color:var(--accent-light);font-weight:600">Browse templates →</a></p>
+    <p>Select a template, configure the settings, and get production-ready Remotion TSX code instantly. &nbsp;<a href="templates.html" style="color:var(--accent-light);font-weight:600">Browse all templates →</a></p>
 
-    <!-- Signature prompt — the one that describes this repo's own creation -->
-    <div
-      id="origin-prompt-card"
-      onclick="loadOriginPrompt()"
-      title="Click to load the origin prompt"
-      style="
-        display:inline-flex; align-items:center; gap:12px;
-        background:linear-gradient(135deg,rgba(124,58,237,0.18),rgba(96,165,250,0.12));
-        border:1px solid #7c3aed; border-radius:12px;
-        padding:10px 18px; margin:16px auto 4px; cursor:pointer;
-        transition:all 0.2s; max-width:640px; width:100%; box-sizing:border-box;
-        text-align:left;
-      "
-    >
-      <span style="font-size:22px;flex-shrink:0">✨</span>
-      <div>
-        <div style="font-size:10px;color:#a78bfa;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px">Origin Prompt — this repo was built with this ↓</div>
-        <div id="origin-prompt-text" style="font-size:13px;color:#e6edf3;font-style:italic;line-height:1.5">
-          "Fade in gradient text saying 'A prompt created this.' on deep purple background, typewriter reveals 'remotion-with-a-prompt' below, zoom in for 6 seconds, fade out at end"
-        </div>
-      </div>
-      <span style="flex-shrink:0;font-size:12px;color:#7c3aed;font-weight:700;white-space:nowrap">Try it →</span>
-    </div>
-
-    <div class="example-prompts" id="example-prompts" style="margin-top:12px">
-      <span class="example-chip" onclick="setPrompt(this)">Fade in logo with rainbow text</span>
-      <span class="example-chip" onclick="setPrompt(this)">Slide from left, zoom in title card</span>
-      <span class="example-chip" onclick="setPrompt(this)">Bounce animation with image and text overlay</span>
-      <span class="example-chip" onclick="setPrompt(this)">Typewriter cursor blinking saying Hello World</span>
-      <span class="example-chip" onclick="setPrompt(this)">Floating particles with gradient text</span>
-      <span class="example-chip" onclick="setPrompt(this)">Stagger list: Step 1, Step 2, Step 3</span>
-      <span class="example-chip" onclick="setPrompt(this)">Wavy text animation saying Welcome</span>
-      <span class="example-chip" onclick="setPrompt(this)">Count up to 1000 on dark background</span>
-    </div>
-
-    <!-- Test Render Button for Pythagorean Theorem -->
-    <div style="margin-top:16px;text-align:center">
-      <button
-        class="btn btn-secondary"
-        onclick="loadPythagoreanTest()"
-        title="Load Pythagorean theorem (a²+b²=c²) test composition"
-        style="
-          background:linear-gradient(135deg,rgba(186,131,239,0.2),rgba(78,205,196,0.2));
-          border-color:#ba83ef;
-          font-size:13px;
-          padding:8px 16px;
-        "
-      >
-        🧮 Test: Pythagorean Theorem (a²+b²=c²)
-      </button>
-    </div>
-    <script>
-      function loadPythagoreanTest() {
-        // Load the Pythagorean theorem visualization prompt
-        var prompt = "Animated visualization of Pythagorean theorem a²+b²=c² with right triangle and colored squares on each side, showing 3-4-5 example, dark purple gradient background, formula appears at end with pulse effect";
-        document.getElementById('prompt-input').value = prompt;
-        document.getElementById('prompt-input').scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // Highlight the button momentarily
-        event.target.style.boxShadow = '0 0 24px rgba(186,131,239,0.6)';
-        setTimeout(function() { event.target.style.boxShadow = ''; }, 800);
-      }
-    </script>
   </div>
 
   <!-- Studio Layout -->
@@ -429,72 +367,59 @@
         </div>
       </div>
 
-      <!-- Prompt -->
+      <!-- Template Selector -->
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <div class="card-title" style="margin-bottom:0">📝 Prompt</div>
+          <div class="card-title" style="margin-bottom:0">🎨 Template</div>
           <div style="display:flex;gap:6px;align-items:center">
             <span id="xai-badge" style="font-size:10px;padding:2px 7px;border-radius:10px;font-weight:700;display:none"></span>
-            <button id="enhance-btn" class="btn btn-secondary btn-sm" onclick="runEnhance()" title="Enhance prompt with Grok AI">✨ Enhance</button>
+            <a href="templates.html" class="btn btn-secondary btn-sm" style="text-decoration:none">Browse all →</a>
             <button class="btn btn-secondary btn-sm" onclick="toggleSettings()" title="xAI API settings">⚙️</button>
           </div>
         </div>
-        <div class="form-group" style="margin-bottom:0;position:relative">
-          <textarea
-            id="prompt-input"
-            class="prompt-textarea"
-            placeholder="Describe your video animation...&#10;e.g. 'Fade in my logo, then slide up the title text, zoom in for 3 seconds on a dark purple background'"
-            autofocus
-          ></textarea>
-          <div id="enhance-overlay" style="display:none;position:absolute;inset:0;background:rgba(13,17,23,0.82);border-radius:var(--radius);align-items:center;justify-content:center;flex-direction:column;gap:8px;font-size:13px;color:var(--accent-light)">
-            <span style="font-size:22px;animation:spin 1.2s linear infinite;display:inline-block">✨</span>
-            Enhancing with Grok…
-          </div>
-        </div>
-
-        <!-- Enhancement result panel — shown after Grok responds -->
-        <div id="enhance-result" style="display:none;margin-top:12px;border:1px solid var(--accent);border-radius:var(--radius-lg);overflow:hidden">
-          <!-- before -->
-          <div style="padding:10px 14px;background:var(--bg-tertiary);border-bottom:1px solid var(--border)">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:6px">Original</div>
-            <div id="enhance-before" style="font-size:13px;color:var(--text-muted);line-height:1.6;white-space:pre-wrap;word-break:break-word"></div>
-          </div>
-          <!-- after -->
-          <div style="padding:10px 14px;background:rgba(124,58,237,0.08)">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent-light);margin-bottom:6px">✨ Enhanced by Grok</div>
-            <div id="enhance-after" style="font-size:13px;color:var(--text-primary);line-height:1.6;white-space:pre-wrap;word-break:break-word"></div>
-          </div>
-          <!-- actions -->
-          <div style="display:flex;gap:8px;padding:10px 14px;background:var(--bg-card);border-top:1px solid var(--border)">
-            <button class="btn btn-primary btn-sm" onclick="applyEnhancement()">✅ Use enhanced</button>
-            <button class="btn btn-secondary btn-sm" onclick="discardEnhancement()">✕ Keep original</button>
-          </div>
+        <select id="template-select" onchange="onTemplateChange()" style="margin-bottom:16px">
+          <option value="">— Select a template —</option>
+          <option value="fade">🌅 Fade</option>
+          <option value="slide">➡️ Slide</option>
+          <option value="zoom">🔍 Zoom</option>
+          <option value="bounce">🎪 Bounce</option>
+          <option value="rotate">🔄 Rotate</option>
+          <option value="typewriter">⌨️ Typewriter</option>
+          <option value="typewriter-cursor">🖥️ Typewriter + Cursor</option>
+          <option value="particle">✨ Particles</option>
+          <option value="stagger">📋 Stagger List</option>
+          <option value="wave">🌊 Wave</option>
+          <option value="counter">🔢 Counter</option>
+          <optgroup label="─── Diagrams ───">
+          <option value="diagram-1box">📦 Diagram — 1 Box</option>
+          <option value="diagram-2box">📦📦 Diagram — 2 Boxes</option>
+          <option value="diagram-3box">📦📦📦 Diagram — 3 Boxes</option>
+          </optgroup>
+        </select>
+        <div id="template-config-area">
+          <p style="color:var(--text-muted);font-size:13px;text-align:center;padding:16px 0">Select a template above to configure it.</p>
         </div>
       </div>
 
-      <!-- Images -->
-      <div class="card">
+      <!-- Images (shown only for templates that support images) -->
+      <div class="card" id="images-card" style="display:none">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
           <div class="card-title" style="margin-bottom:0">🖼️ Images</div>
           <button id="gen-img-btn" class="btn btn-secondary btn-sm" onclick="runImageGen()" title="Generate image with xAI Aurora">🎨 Generate with AI</button>
         </div>
-
-        <!-- AI image prompt row -->
-        <div class="form-group" style="margin-bottom:12px" id="img-gen-row" style="display:none">
-          <label>Image generation prompt <span style="color:var(--text-muted);font-weight:400">(leave blank to use video prompt)</span></label>
+        <div class="form-group" style="margin-bottom:12px" id="img-gen-row">
+          <label>Image generation prompt <span style="color:var(--text-muted);font-weight:400">(leave blank to use template text)</span></label>
           <div style="display:flex;gap:8px">
             <input type="text" id="img-gen-prompt" placeholder="e.g. cinematic logo, purple neon glow, dark background" />
             <button class="btn btn-primary btn-sm" onclick="runImageGen()" style="white-space:nowrap">Generate</button>
           </div>
           <div id="img-gen-status" style="font-size:12px;color:var(--text-muted);margin-top:4px;display:none"></div>
         </div>
-
         <div class="image-drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
           <div class="drop-icon">🖼️</div>
           <p>Drop images here or click to upload<br/><small style="color:var(--text-muted)">PNG, JPG, GIF, WebP, SVG</small></p>
           <input type="file" id="file-input" accept="image/*" multiple />
         </div>
-
         <div class="form-group" style="margin-top:12px">
           <label>Or paste image URL</label>
           <div style="display:flex;gap:8px">
@@ -502,7 +427,6 @@
             <button class="btn btn-secondary btn-sm" onclick="addImageFromUrl()" style="white-space:nowrap">Add URL</button>
           </div>
         </div>
-
         <div class="image-grid" id="image-grid"></div>
       </div>
 
@@ -537,7 +461,7 @@
 
       <!-- Generate -->
       <div class="generate-bar">
-        <button class="btn btn-primary btn-lg generate-btn" onclick="generateComposition()">
+        <button id="generate-btn" class="btn btn-primary btn-lg generate-btn" onclick="generateComposition()">
           🎬 Generate Composition
         </button>
         <button class="btn btn-secondary" onclick="clearAll()" title="Clear all">🗑️</button>
@@ -546,7 +470,7 @@
       <!-- Status -->
       <div class="status-bar" id="status-bar">
         <div class="status-dot ready" id="status-dot"></div>
-        <span id="status-text">Ready — Enter a prompt and click Generate</span>
+        <span id="status-text">Ready — Select a template and click Generate</span>
       </div>
 
     </div>
@@ -559,6 +483,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
           <div class="card-title" style="margin-bottom:0">▶️ Preview</div>
           <button id="download-preview-btn" class="btn btn-secondary btn-sm" onclick="downloadPreview()" style="display:none">⬇️ Download WebM</button>
+          <button id="download-mp4-btn" class="btn btn-secondary btn-sm" onclick="showMp4Dialog()" style="display:none">🎬 Download MP4</button>
         </div>
         <div class="preview-box" id="preview-box">
           <div class="preview-placeholder" id="preview-placeholder">
@@ -638,6 +563,38 @@
     </p>
   </footer>
 
+  <!-- MP4 Download Dialog -->
+  <div id="mp4-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center;padding:24px" onclick="if(event.target===this)closeMp4Dialog()">
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:28px;max-width:560px;width:100%">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div style="font-size:18px;font-weight:700">🎬 Render MP4 Locally</div>
+        <button onclick="closeMp4Dialog()" style="background:none;border:none;color:var(--text-secondary);font-size:20px;cursor:pointer">✕</button>
+      </div>
+      <p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px">
+        Browsers can only export <strong>WebM</strong> video. For a true <strong>MP4</strong>, run Remotion locally:
+      </p>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px">
+        <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em">1. Download the generated TSX code above</div>
+          <div style="font-size:13px;color:var(--text-secondary)">Click <strong>⬇️ Download</strong> → save as <code>src/Composition.tsx</code></div>
+        </div>
+        <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em">2. Bootstrap a Remotion project (if needed)</div>
+          <pre style="margin:0;font-size:12px;color:var(--accent-light)">npx create-video@latest my-video && cd my-video</pre>
+        </div>
+        <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em">3. Render MP4</div>
+          <pre id="mp4-cmd" style="margin:0;font-size:12px;color:var(--accent-light);white-space:pre-wrap;word-break:break-all"></pre>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button id="copy-mp4-cmd-btn" onclick="copyMp4Cmd()" class="btn btn-primary btn-sm">Copy command</button>
+        <button onclick="downloadPreview();closeMp4Dialog()" class="btn btn-secondary btn-sm">⬇️ Download WebM instead</button>
+        <a href="4_Formula/remotion-iac.html" target="_blank" class="btn btn-secondary btn-sm" style="text-decoration:none">📋 Full IaC guide</a>
+      </div>
+    </div>
+  </div>
+
   <script src="assets/nav-component.js"></script>
   <script>
     // ── State ────────────────────────────────────────────────────────────────
@@ -649,48 +606,251 @@
     var totalFrames = 150;
     var animFPS = 30;
 
-    // ── Example prompts ──────────────────────────────────────────────────────
-    function setPrompt(el) {
-      document.getElementById('prompt-input').value = el.textContent;
+    // ── Template Fields Config ──────────────────────────────────────────────
+    var TEMPLATE_FIELDS = {
+      fade: [
+        { id: 'text', label: 'Text Content', type: 'text', default: 'Hello World' },
+        { id: 'bgColor', label: 'Background Color', type: 'color', default: '#0d1117' },
+        { id: 'textColor', label: 'Text Color', type: 'color', default: '#ffffff' },
+        { id: 'gradient', label: 'Rainbow gradient text', type: 'toggle', default: false },
+      ],
+      slide: [
+        { id: 'text', label: 'Text Content', type: 'text', default: 'Hello World' },
+        { id: 'direction', label: 'Slide Direction', type: 'select', options: ['left','right','up','down'], default: 'left' },
+        { id: 'bgColor', label: 'Background Color', type: 'color', default: '#0d1117' },
+        { id: 'textColor', label: 'Text Color', type: 'color', default: '#ffffff' },
+      ],
+      zoom: [
+        { id: 'text', label: 'Text Content', type: 'text', default: 'Hello World' },
+        { id: 'bgColor', label: 'Background Color', type: 'color', default: '#0d1117' },
+        { id: 'textColor', label: 'Text Color', type: 'color', default: '#ffffff' },
+      ],
+      bounce: [
+        { id: 'text', label: 'Text Content', type: 'text', default: 'Hello World' },
+        { id: 'bgColor', label: 'Background Color', type: 'color', default: '#0d1117' },
+        { id: 'textColor', label: 'Text Color', type: 'color', default: '#ffffff' },
+      ],
+      rotate: [
+        { id: 'text', label: 'Text Content', type: 'text', default: 'Hello World' },
+        { id: 'bgColor', label: 'Background Color', type: 'color', default: '#0d1117' },
+        { id: 'textColor', label: 'Text Color', type: 'color', default: '#ffffff' },
+      ],
+      typewriter: [
+        { id: 'text', label: 'Text to Type', type: 'textarea', default: 'Hello World' },
+        { id: 'bgColor', label: 'Background Color', type: 'color', default: '#0d1117' },
+        { id: 'textColor', label: 'Text Color', type: 'color', default: '#50fa7b' },
+      ],
+      'typewriter-cursor': [
+        { id: 'text', label: 'Text to Type', type: 'textarea', default: 'Hello World' },
+        { id: 'bgColor', label: 'Background Color', type: 'color', default: '#0d1117' },
+        { id: 'textColor', label: 'Text Color', type: 'color', default: '#50fa7b' },
+        { id: 'cursorColor', label: 'Cursor Color', type: 'color', default: '#ffffff' },
+      ],
+      particle: [
+        { id: 'text', label: 'Text Content', type: 'text', default: 'Hello World' },
+        { id: 'bgColor', label: 'Background Color', type: 'color', default: '#0d1117' },
+        { id: 'particleColor', label: 'Particle Color', type: 'color', default: '#7c3aed' },
+        { id: 'particleCount', label: 'Particle Count', type: 'number', min: 10, max: 100, default: 40 },
+      ],
+      stagger: [
+        { id: 'items', label: 'List Items (one per line)', type: 'textarea', default: 'Step 1\nStep 2\nStep 3' },
+        { id: 'bgColor', label: 'Background Color', type: 'color', default: '#0d1117' },
+        { id: 'textColor', label: 'Text Color', type: 'color', default: '#ffffff' },
+      ],
+      wave: [
+        { id: 'text', label: 'Text Content', type: 'text', default: 'Hello World' },
+        { id: 'bgColor', label: 'Background Color', type: 'color', default: '#0d1117' },
+        { id: 'textColor', label: 'Text Color', type: 'color', default: '#ffffff' },
+      ],
+      counter: [
+        { id: 'target', label: 'Count To', type: 'number', min: 1, max: 999999, default: 100 },
+        { id: 'prefix', label: 'Prefix (optional)', type: 'text', default: '' },
+        { id: 'suffix', label: 'Suffix (optional)', type: 'text', default: '' },
+        { id: 'bgColor', label: 'Background Color', type: 'color', default: '#0d1117' },
+        { id: 'textColor', label: 'Number Color', type: 'color', default: '#ffffff' },
+      ],
+      'diagram-1box': [
+        { id: 'boxTitle', label: 'Box Title', type: 'text', default: 'Component' },
+        { id: 'boxContent', label: 'Box Description', type: 'text', default: 'Your description here' },
+        { id: 'bgColor', label: 'Background Color', type: 'color', default: '#0d1117' },
+        { id: 'boxColor', label: 'Box Border Color', type: 'color', default: '#7c3aed' },
+        { id: 'textColor', label: 'Text Color', type: 'color', default: '#ffffff' },
+      ],
+      'diagram-2box': [
+        { id: 'box1Title', label: 'Box 1 Title', type: 'text', default: 'Input' },
+        { id: 'box2Title', label: 'Box 2 Title', type: 'text', default: 'Output' },
+        { id: 'arrowLabel', label: 'Arrow Label (optional)', type: 'text', default: 'transforms to' },
+        { id: 'bgColor', label: 'Background Color', type: 'color', default: '#0d1117' },
+        { id: 'boxColor', label: 'Box Border Color', type: 'color', default: '#7c3aed' },
+        { id: 'textColor', label: 'Text Color', type: 'color', default: '#ffffff' },
+      ],
+      'diagram-3box': [
+        { id: 'box1Title', label: 'Box 1 Title', type: 'text', default: 'Step 1' },
+        { id: 'box2Title', label: 'Box 2 Title', type: 'text', default: 'Step 2' },
+        { id: 'box3Title', label: 'Box 3 Title', type: 'text', default: 'Step 3' },
+        { id: 'bgColor', label: 'Background Color', type: 'color', default: '#0d1117' },
+        { id: 'boxColor', label: 'Box Border Color', type: 'color', default: '#7c3aed' },
+        { id: 'textColor', label: 'Text Color', type: 'color', default: '#ffffff' },
+      ],
+    };
+
+    // Templates that support image upload
+    var IMAGE_TEMPLATES = ['fade','slide','zoom','bounce','rotate'];
+
+    function escHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
-    // The one prompt that describes this repo's own creation
-    var ORIGIN_PROMPT = 'Fade in gradient text saying "A prompt created this." on deep purple background, typewriter reveals remotion-with-a-prompt below, zoom in for 6 seconds, fade out at end';
+    function renderColorFieldHTML(id, defaultVal) {
+      var presets = ['#0d1117','#1a0533','#2d0a4e','#0d2137','#000000','#ffffff','#50fa7b','#7c3aed'];
+      var html = '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">';
+      html += '<input type="color" id="' + id + '" value="' + defaultVal + '" style="width:44px;height:36px;padding:2px;border-radius:6px;border:1px solid var(--border);cursor:pointer;background:var(--bg-card)" />';
+      html += '<div style="display:flex;gap:5px;flex-wrap:wrap">';
+      presets.forEach(function(c) {
+        html += '<button type="button" onclick="document.getElementById(\'' + id + '\').value=\'' + c + '\'" title="' + c + '" style="width:22px;height:22px;border-radius:50%;background:' + c + ';border:2px solid var(--border);cursor:pointer;flex-shrink:0"></button>';
+      });
+      html += '</div></div>';
+      return html;
+    }
 
-    function loadOriginPrompt() {
-      document.getElementById('prompt-input').value = ORIGIN_PROMPT;
-      // Pulse the card
-      var card = document.getElementById('origin-prompt-card');
-      card.style.boxShadow = '0 0 24px rgba(124,58,237,0.6)';
-      setTimeout(function() { card.style.boxShadow = ''; }, 800);
-      // Scroll to prompt
-      document.getElementById('prompt-input').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    function renderTemplateConfig(tplId) {
+      var area = document.getElementById('template-config-area');
+      var imagesCard = document.getElementById('images-card');
+      if (!tplId) {
+        area.innerHTML = '<p style="color:var(--text-muted);font-size:13px;text-align:center;padding:16px 0">Select a template above to configure it.</p>';
+        if (imagesCard) imagesCard.style.display = 'none';
+        return;
+      }
+      var fields = TEMPLATE_FIELDS[tplId];
+      if (!fields) {
+        area.innerHTML = '<p style="color:var(--text-muted);font-size:13px">Unknown template.</p>';
+        return;
+      }
+      var html = '<div style="display:flex;flex-direction:column;gap:14px">';
+      fields.forEach(function(f) {
+        html += '<div class="form-group" style="margin-bottom:0">';
+        html += '<label>' + escHtml(f.label) + '</label>';
+        if (f.type === 'text') {
+          html += '<input type="text" id="tpl-' + f.id + '" value="' + escHtml(f.default) + '" />';
+        } else if (f.type === 'textarea') {
+          html += '<textarea id="tpl-' + f.id + '" style="min-height:80px;resize:vertical">' + escHtml(f.default) + '</textarea>';
+        } else if (f.type === 'color') {
+          html += renderColorFieldHTML('tpl-' + f.id, f.default);
+        } else if (f.type === 'select') {
+          html += '<select id="tpl-' + f.id + '">';
+          f.options.forEach(function(o) {
+            html += '<option value="' + o + '"' + (o === f.default ? ' selected' : '') + '>' + o.charAt(0).toUpperCase() + o.slice(1) + '</option>';
+          });
+          html += '</select>';
+        } else if (f.type === 'toggle') {
+          html += '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:normal">';
+          html += '<input type="checkbox" id="tpl-' + f.id + '"' + (f.default ? ' checked' : '') + ' style="width:auto;margin:0" />';
+          html += '<span style="font-size:13px;color:var(--text-secondary)">Enable</span></label>';
+        } else if (f.type === 'number') {
+          html += '<input type="number" id="tpl-' + f.id + '" value="' + f.default + '" min="' + (f.min||0) + '" max="' + (f.max||9999) + '" />';
+        }
+        html += '</div>';
+      });
+      html += '</div>';
+      area.innerHTML = html;
+      if (imagesCard) imagesCard.style.display = IMAGE_TEMPLATES.includes(tplId) ? 'block' : 'none';
+    }
+
+    function onTemplateChange() {
+      var tpl = document.getElementById('template-select').value;
+      if (tpl) {
+        history.pushState({ tpl: tpl }, '', '?tpl=' + tpl);
+      } else {
+        history.pushState({}, '', window.location.pathname);
+      }
+      renderTemplateConfig(tpl);
+      images = [];
+      renderImageGrid();
+    }
+
+    function buildParamsFromTemplate() {
+      var tplId = document.getElementById('template-select').value;
+      if (!tplId) return null;
+      var fields = TEMPLATE_FIELDS[tplId] || [];
+      var f = {};
+      fields.forEach(function(field) {
+        var el = document.getElementById('tpl-' + field.id);
+        if (!el) return;
+        if (field.type === 'toggle') {
+          f[field.id] = el.checked;
+        } else if (field.type === 'number') {
+          f[field.id] = parseFloat(el.value) || field.default;
+        } else {
+          f[field.id] = el.value !== undefined ? el.value : field.default;
+        }
+      });
+      var textContent = f.text || (f.items ? f.items.split('\n')[0] : null) || 'Hello World';
+      return {
+        template:            tplId,
+        raw:                 tplId + ' animation with ' + textContent,
+        textContent:         textContent,
+        bgColor:             f.bgColor || '#0d1117',
+        textColor:           f.textColor || '#ffffff',
+        hasGradient:         !!f.gradient,
+        hasFade:             tplId === 'fade',
+        fadeIn:              tplId === 'fade',
+        hasSlide:            tplId === 'slide',
+        slideDir:            f.direction || 'left',
+        hasZoom:             tplId === 'zoom',
+        zoomIn:              tplId === 'zoom',
+        hasBounce:           tplId === 'bounce',
+        hasRotate:           tplId === 'rotate',
+        hasTypewriter:       tplId === 'typewriter' || tplId === 'typewriter-cursor',
+        hasTypewriterCursor: tplId === 'typewriter-cursor',
+        hasParticle:         tplId === 'particle',
+        hasStagger:          tplId === 'stagger',
+        hasWave:             tplId === 'wave',
+        hasCounter:          tplId === 'counter',
+        staggerItems:        f.items ? f.items.split('\n').filter(Boolean).slice(0,5) : ['Step 1','Step 2','Step 3'],
+        counterTarget:       f.target || 100,
+        counterPrefix:       f.prefix || '',
+        counterSuffix:       f.suffix || '',
+        particleColor:       f.particleColor || '#7c3aed',
+        particleCount:       f.particleCount || 40,
+        cursorColor:         f.cursorColor || '#ffffff',
+        hasImages:           images.length > 0,
+        hasLogo:             images.length > 0,
+        // Diagram fields
+        isDiagram:           tplId.startsWith('diagram-'),
+        diagramBoxes:        tplId === 'diagram-1box' ? 1 : tplId === 'diagram-2box' ? 2 : tplId === 'diagram-3box' ? 3 : 0,
+        boxTitle:            f.boxTitle || 'Box',
+        boxContent:          f.boxContent || '',
+        box1Title:           f.box1Title || 'Box 1',
+        box2Title:           f.box2Title || 'Box 2',
+        box3Title:           f.box3Title || 'Box 3',
+        arrowLabel:          f.arrowLabel || '',
+        boxColor:            f.boxColor || '#7c3aed',
+      };
     }
 
     // ── Image Handling ───────────────────────────────────────────────────────
-    var dropZone = document.getElementById('drop-zone');
-    var fileInput = document.getElementById('file-input');
-
-    dropZone.addEventListener('dragover', function(e) {
-      e.preventDefault();
-      dropZone.classList.add('drag-over');
-    });
-
-    dropZone.addEventListener('dragleave', function() {
-      dropZone.classList.remove('drag-over');
-    });
-
-    dropZone.addEventListener('drop', function(e) {
-      e.preventDefault();
-      dropZone.classList.remove('drag-over');
-      var files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-      files.forEach(addImageFile);
-    });
-
-    fileInput.addEventListener('change', function() {
-      Array.from(this.files).forEach(addImageFile);
-      this.value = '';
-    });
+    function initImageDropZone() {
+      var dropZone = document.getElementById('drop-zone');
+      var fileInput = document.getElementById('file-input');
+      if (!dropZone || !fileInput) return;
+      dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+      });
+      dropZone.addEventListener('dragleave', function() {
+        dropZone.classList.remove('drag-over');
+      });
+      dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        var files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+        files.forEach(addImageFile);
+      });
+      fileInput.addEventListener('change', function() {
+        Array.from(this.files).forEach(addImageFile);
+        this.value = '';
+      });
+    }
 
     function addImageFile(file) {
       var reader = new FileReader();
@@ -733,7 +893,9 @@
 
     // ── Clear ────────────────────────────────────────────────────────────────
     function clearAll() {
-      document.getElementById('prompt-input').value = '';
+      var tplSel = document.getElementById('template-select');
+      if (tplSel) { tplSel.value = ''; renderTemplateConfig(''); }
+      history.pushState({}, '', window.location.pathname);
       images = [];
       renderImageGrid();
       stopPreview();
@@ -743,8 +905,10 @@
       document.getElementById('preview-controls').classList.remove('visible');
       document.getElementById('code-pre').textContent = '// Your generated Remotion composition will appear here...';
       document.getElementById('custom-tsx-panel').style.display = 'none';
+      document.getElementById('download-preview-btn').style.display = 'none';
+      document.getElementById('download-mp4-btn').style.display = 'none';
       generatedCode = '';
-      setStatus('ready', 'Ready — Enter a prompt and click Generate');
+      setStatus('ready', 'Ready — Select a template and click Generate');
     }
 
     // ── Custom TSX + new-template guide panel ─────────────────────────────────
@@ -785,11 +949,12 @@
 
     // ── Generate ─────────────────────────────────────────────────────────────
     async function generateComposition() {
-      var prompt = document.getElementById('prompt-input').value.trim();
-      if (!prompt) { setStatus('error', 'Please enter a prompt first!'); return; }
+      var p = buildParamsFromTemplate();
+      if (!p) { setStatus('error', 'Please select a template first!'); return; }
 
       var btn = document.getElementById('generate-btn');
       btn.disabled = true;
+      setStatus('generating', 'Generating composition…');
 
       var durationSec = parseFloat(document.getElementById('duration').value) || 5;
       var fps         = parseInt(document.getElementById('fps').value) || 30;
@@ -801,69 +966,13 @@
       totalFrames = Math.round(durationSec * fps);
       animFPS     = fps;
 
-      // Hide any previous custom panel
       document.getElementById('custom-tsx-panel').style.display = 'none';
 
-      // Step 1 — keyword parse (fast, no API needed)
-      var keywordParams = parsePrompt(prompt);
-      var p = keywordParams;
-
-      // Step 2 — xAI structured JSON extraction (when key available)
-      if (window.xAI && window.xAI.hasKey()) {
-        setStatus('generating', '🤖 Analysing prompt with Grok…');
-        try {
-          var aiParams = await window.xAI.extractParams(prompt);
-          p = Object.assign({}, keywordParams, aiParams, {
-            raw:          prompt,
-            hasImages:    keywordParams.hasImages,
-            staggerItems: aiParams.items || keywordParams.staggerItems,
-            counterTarget: aiParams.counterTarget || keywordParams.counterTarget,
-          });
-          if (aiParams.durationSec) {
-            durationSec = aiParams.durationSec;
-            totalFrames = Math.round(durationSec * fps);
-            document.getElementById('duration').value = durationSec;
-          }
-        } catch (e) {
-          console.warn('extractParams failed, using keyword parser:', e.message);
-        }
-      } else {
-        setStatus('generating', 'Generating composition…');
-      }
-
-      // Step 3 — route to template
-      var template = routeToTemplate(p);
-      p.template = template;
-
-      // Step 4a — known template → build + preview
-      if (template !== 'custom') {
-        var code = buildCode(p, durationSec, fps, width, height);
-        generatedCode = code;
-        document.getElementById('code-pre').innerHTML = syntaxHighlight(code);
-        setStatus('ready', '✅ ' + template + ' · ' + durationSec + 's @ ' + fps + 'fps · ' + width + '×' + height);
-        startPreview(p, durationSec, fps, width, height);
-
-      // Step 4b — custom: generate TSX + new-template guide
-      } else if (window.xAI && window.xAI.hasKey()) {
-        setStatus('generating', '🤖 No template matched — generating custom TSX…');
-        try {
-          var customTSX      = await window.xAI.generateCustomTSX(prompt);
-          setStatus('generating', '🤖 Building new-template guide…');
-          var templateGuide  = await window.xAI.generateNewTemplatePrompt(prompt);
-          showCustomPanel(customTSX, templateGuide);
-        } catch (e) {
-          setStatus('error', '⚠️ Custom generation failed: ' + e.message);
-        }
-
-      // Step 4c — no key + no match → fade fallback
-      } else {
-        p.template = 'fade';
-        var code = buildCode(p, durationSec, fps, width, height);
-        generatedCode = code;
-        document.getElementById('code-pre').innerHTML = syntaxHighlight(code);
-        setStatus('ready', 'fade template used (add xAI key for smarter routing)');
-        startPreview(p, durationSec, fps, width, height);
-      }
+      var code = buildCode(p, durationSec, fps, width, height);
+      generatedCode = code;
+      document.getElementById('code-pre').innerHTML = syntaxHighlight(code);
+      setStatus('ready', '✅ ' + p.template + ' · ' + durationSec + 's @ ' + fps + 'fps · ' + width + '×' + height);
+      startPreview(p, durationSec, fps, width, height);
 
       btn.disabled = false;
     }
@@ -1145,6 +1254,22 @@
         lines.push('');
       }
 
+      if (p.isDiagram) {
+        var n = p.diagramBoxes || 1;
+        lines.push('// Diagram — boxes appear sequentially');
+        for (var bi = 1; bi <= n; bi++) {
+          var delay = (bi - 1) + ' * Math.round(fps * 0.4)';
+          lines.push('const box' + bi + 'Progress = spring({ fps, frame: Math.max(0, frame - ' + ((bi-1)) + ' * Math.round(fps * 0.4)), config: { damping: 120, stiffness: 80 }, durationInFrames: Math.round(fps * 0.6) });');
+          lines.push('const box' + bi + 'Opacity = box' + bi + 'Progress;');
+          lines.push('const box' + bi + 'Y = interpolate(box' + bi + 'Progress, [0, 1], [40, 0]);');
+          lines.push('');
+        }
+        if (n > 1) {
+          lines.push('const arrowProgress = spring({ fps, frame: Math.max(0, frame - ' + (n-1) + ' * Math.round(fps * 0.3)), config: { damping: 200 }, durationInFrames: Math.round(fps * 0.4) });');
+          lines.push('');
+        }
+      }
+
       return lines;
     }
 
@@ -1246,6 +1371,44 @@
         lines.push('  </div>');
       }
 
+      if (p.isDiagram) {
+        var boxStyle = 'background: "#1a2035", border: "2px solid ' + (p.boxColor || '#7c3aed') + '", borderRadius: 12, padding: "24px 32px", minWidth: 200, textAlign: "center"';
+        var titleStyle = 'fontSize: 24, fontWeight: 800, color: "' + (p.textColor || '#ffffff') + '"';
+        var subStyle = 'fontSize: 14, color: "rgba(255,255,255,0.55)", marginTop: 8';
+        var n = p.diagramBoxes || 1;
+        if (n === 1) {
+          lines.push('  <div style={{ opacity: box1Opacity, transform: `translateY(${box1Y}px)`, ' + boxStyle + ' }}>');
+          lines.push('    <div style={{ ' + titleStyle + ' }}>' + (p.boxTitle || 'Box') + '</div>');
+          if (p.boxContent) lines.push('    <div style={{ ' + subStyle + ' }}>' + p.boxContent + '</div>');
+          lines.push('  </div>');
+        } else if (n === 2) {
+          lines.push('  <div style={{ display: "flex", alignItems: "center", gap: 32 }}>');
+          lines.push('    <div style={{ opacity: box1Opacity, transform: `translateY(${box1Y}px)`, ' + boxStyle + ' }}>');
+          lines.push('      <div style={{ ' + titleStyle + ' }}>' + (p.box1Title || 'Box 1') + '</div>');
+          lines.push('    </div>');
+          lines.push('    <div style={{ opacity: arrowProgress, fontSize: 28, color: "' + (p.boxColor || '#7c3aed') + '", textAlign: "center" }}>');
+          lines.push('      <div>→</div>');
+          if (p.arrowLabel) lines.push('      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 4 }}>' + p.arrowLabel + '</div>');
+          lines.push('    </div>');
+          lines.push('    <div style={{ opacity: box2Opacity, transform: `translateY(${box2Y}px)`, ' + boxStyle + ' }}>');
+          lines.push('      <div style={{ ' + titleStyle + ' }}>' + (p.box2Title || 'Box 2') + '</div>');
+          lines.push('    </div>');
+          lines.push('  </div>');
+        } else {
+          lines.push('  <div style={{ display: "flex", alignItems: "center", gap: 20 }}>');
+          ['box1Title','box2Title','box3Title'].forEach(function(bk, bi) {
+            var title = p[bk] || ('Box ' + (bi+1));
+            lines.push('    <div style={{ opacity: box' + (bi+1) + 'Opacity, transform: `translateY(${box' + (bi+1) + 'Y}px)`, ' + boxStyle + ' }}>');
+            lines.push('      <div style={{ ' + titleStyle + ' }}>' + title + '</div>');
+            lines.push('    </div>');
+            if (bi < 2) {
+              lines.push('    <div style={{ opacity: arrowProgress, fontSize: 24, color: "' + (p.boxColor || '#7c3aed') + '" }}>→</div>');
+            }
+          });
+          lines.push('  </div>');
+        }
+      }
+
       lines.push('</AbsoluteFill>');
       return lines;
     }
@@ -1343,6 +1506,7 @@
       document.getElementById('preview-label').style.display = 'block';
       document.getElementById('preview-controls').classList.add('visible');
       document.getElementById('download-preview-btn').style.display = '';
+      document.getElementById('download-mp4-btn').style.display = '';
 
       frame = 0;
       isPlaying = true;
@@ -1629,10 +1793,94 @@
         ctx.restore();
       }
 
+      // ── Diagram templates ──────────────────────────────────────────────────
+      if (p.isDiagram) {
+        var n = p.diagramBoxes || 1;
+        var boxColor = p.boxColor || '#7c3aed';
+        var textColor2 = p.textColor || '#ffffff';
+        var bw = Math.round(w * 0.22);
+        var bh = Math.round(h * 0.22);
+        var arrowW = Math.round(w * 0.06);
+        var totalW3 = n * bw + (n - 1) * (arrowW + Math.round(w * 0.02));
+        var startX3 = (w - totalW3) / 2;
+        var centerY3 = h / 2;
+        var delay3 = Math.round(fps * 0.4);
+
+        function springDgm(fr) {
+          var f = Math.max(0, fr);
+          return Math.max(0, Math.min(1, 1 - Math.exp(-12 * f / fps) * Math.cos(6 * f / fps)));
+        }
+
+        var boxLabels = n === 1
+          ? [p.boxTitle || 'Box']
+          : [p.box1Title || 'Box 1', p.box2Title || 'Box 2', p.box3Title || 'Box 3'].slice(0, n);
+
+        for (var bi3 = 0; bi3 < n; bi3++) {
+          var boxProgress = springDgm(frame - bi3 * delay3);
+          var bx3 = startX3 + bi3 * (bw + arrowW + Math.round(w * 0.02));
+          var by3Offset = (1 - boxProgress) * Math.round(h * 0.05);
+          ctx.save();
+          ctx.globalAlpha = boxProgress;
+          ctx.translate(0, by3Offset);
+          // Box background
+          ctx.fillStyle = 'rgba(26,32,53,0.95)';
+          ctx.beginPath();
+          ctx.roundRect(bx3, centerY3 - bh/2, bw, bh, 10);
+          ctx.fill();
+          // Box border
+          ctx.strokeStyle = boxColor;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          // Box title
+          ctx.fillStyle = textColor2;
+          ctx.font = 'bold ' + Math.round(w * 0.022) + 'px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(boxLabels[bi3] || ('Box ' + (bi3+1)), bx3 + bw/2, centerY3);
+          // Box content for 1-box diagram
+          if (n === 1 && p.boxContent) {
+            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx.font = Math.round(w * 0.015) + 'px sans-serif';
+            ctx.fillText(p.boxContent, bx3 + bw/2, centerY3 + Math.round(h * 0.05));
+          }
+          ctx.restore();
+
+          // Arrow between boxes
+          if (bi3 < n - 1) {
+            var arrowProgress2 = springDgm(frame - (bi3 + 0.7) * delay3);
+            ctx.save();
+            ctx.globalAlpha = arrowProgress2;
+            var ax = bx3 + bw + Math.round(w * 0.01);
+            var ay = centerY3;
+            ctx.strokeStyle = boxColor;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(ax, ay);
+            ctx.lineTo(ax + arrowW * 0.7, ay);
+            ctx.stroke();
+            ctx.fillStyle = boxColor;
+            ctx.beginPath();
+            ctx.moveTo(ax + arrowW * 0.7, ay - 6);
+            ctx.lineTo(ax + arrowW, ay);
+            ctx.lineTo(ax + arrowW * 0.7, ay + 6);
+            ctx.fill();
+            // Arrow label
+            if (n === 2 && p.arrowLabel) {
+              ctx.fillStyle = 'rgba(255,255,255,0.45)';
+              ctx.font = Math.round(w * 0.012) + 'px sans-serif';
+              ctx.textAlign = 'center';
+              ctx.fillText(p.arrowLabel, ax + arrowW / 2, ay - 14);
+            }
+            ctx.restore();
+          }
+        }
+      }
+
       // Frame counter
       ctx.fillStyle = 'rgba(255,255,255,0.3)';
       ctx.font = '11px monospace';
       ctx.textAlign = 'right';
+      ctx.textBaseline = 'bottom';
       ctx.fillText('frame ' + frame + ' / ' + total, w - 8, h - 8);
     }
 
@@ -1761,6 +2009,30 @@
       requestAnimationFrame(recTick);
     }
 
+    // ── MP4 Download Dialog ──────────────────────────────────────────────────
+    function showMp4Dialog() {
+      var dur = parseFloat(document.getElementById('duration').value) || 5;
+      var fps = parseInt(document.getElementById('fps').value) || 30;
+      var res = document.getElementById('resolution').value;
+      var cmd = 'npx remotion render src/index.ts GeneratedComposition out/video.mp4 --frames=0-' + Math.round(dur * fps) + ' --fps=' + fps;
+      var modal = document.getElementById('mp4-modal');
+      document.getElementById('mp4-cmd').textContent = cmd;
+      modal.style.display = 'flex';
+    }
+
+    function closeMp4Dialog() {
+      document.getElementById('mp4-modal').style.display = 'none';
+    }
+
+    function copyMp4Cmd() {
+      var cmd = document.getElementById('mp4-cmd').textContent;
+      navigator.clipboard.writeText(cmd).then(function() {
+        var btn = document.getElementById('copy-mp4-cmd-btn');
+        btn.textContent = '✓ Copied'; btn.style.background = '#22c55e'; btn.style.color = '#fff';
+        setTimeout(function() { btn.textContent = 'Copy command'; btn.style.background = ''; btn.style.color = ''; }, 1800);
+      });
+    }
+
     // Handle canvas resize
     window.addEventListener('resize', function() {
       var canvas = document.getElementById('preview-canvas');
@@ -1770,31 +2042,29 @@
       canvas.height = box.offsetHeight;
     });
 
-    // ── Autofocus + load template handoff from templates.html ────────────────
+    // ── Init ─────────────────────────────────────────────────────────────────
     window.addEventListener('load', function() {
-      var ta = document.getElementById('prompt-input');
-
-      // Load prompt handed off from templates.html via sessionStorage
-      var handoffPrompt = sessionStorage.getItem('remotion_studio_prompt');
-      if (handoffPrompt) {
-        ta.value = handoffPrompt;
-        sessionStorage.removeItem('remotion_studio_prompt');
-        setStatus('ready', '✅ Template prompt loaded — click Generate Composition');
+      initImageDropZone();
+      // Handle ?tpl= URL param
+      var tpl = new URLSearchParams(window.location.search).get('tpl');
+      if (tpl && document.getElementById('template-select')) {
+        document.getElementById('template-select').value = tpl;
+        renderTemplateConfig(tpl);
       }
-
-      // Load images handed off from templates.html
-      var handoffImages = sessionStorage.getItem('remotion_studio_images');
-      if (handoffImages) {
-        try {
-          var imgSrcs = JSON.parse(handoffImages);
-          imgSrcs.forEach(function(src, i) { addImage(src, 'template-image-' + (i+1) + '.png'); });
-        } catch (e) {}
-        sessionStorage.removeItem('remotion_studio_images');
+      // Handle sessionStorage handoff from templates.html
+      var storedTpl = sessionStorage.getItem('remotion_studio_tpl');
+      if (storedTpl) {
+        sessionStorage.removeItem('remotion_studio_tpl');
+        var sel = document.getElementById('template-select');
+        if (sel) { sel.value = storedTpl; renderTemplateConfig(storedTpl); }
       }
-
-      if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
-      initXaiStatus();
     });
+
+    window.addEventListener('popstate', function(e) {
+      var tpl = (e.state && e.state.tpl) || new URLSearchParams(window.location.search).get('tpl') || '';
+      var sel = document.getElementById('template-select');
+      if (sel) { sel.value = tpl; renderTemplateConfig(tpl); }
+    });;
 
     // ── xAI key settings ─────────────────────────────────────────────────────
     function toggleSettings() {
@@ -1829,7 +2099,6 @@
       var badge  = document.getElementById('xai-badge');
       var status = document.getElementById('xai-key-status');
       var genBtn = document.getElementById('gen-img-btn');
-      var enhBtn = document.getElementById('enhance-btn');
       var imgRow = document.getElementById('img-gen-row');
 
       if (window.xAI.hasKey()) {
@@ -1837,7 +2106,6 @@
         badge.style.cssText = 'font-size:10px;padding:2px 7px;border-radius:10px;font-weight:700;display:inline-block;background:rgba(124,58,237,0.2);color:#a78bfa;border:1px solid #7c3aed';
         if (status) status.textContent = '✅ Key active (from ' + (((window.ENV||{}).XAI_API_KEY || '').length > 5 ? 'env-config.js' : 'localStorage') + ')';
         if (genBtn) genBtn.style.display = '';
-        if (enhBtn) enhBtn.style.borderColor = '#7c3aed';
         if (imgRow) imgRow.style.display = 'block';
       } else {
         badge.style.display = 'none';
@@ -1846,69 +2114,16 @@
       }
     }
 
-    // ── Prompt enhancement via Grok ──────────────────────────────────────────
-    var _pendingEnhanced = '';
 
-    async function runEnhance() {
-      if (!window.xAI) { setStatus('error', 'xAI module not loaded'); return; }
-      var ta = document.getElementById('prompt-input');
-      var raw = ta.value.trim();
-      if (!raw) { setStatus('error', 'Enter a prompt first, then click Enhance'); return; }
-
-      // Hide any previous result
-      document.getElementById('enhance-result').style.display = 'none';
-      _pendingEnhanced = '';
-
-      var btn     = document.getElementById('enhance-btn');
-      var overlay = document.getElementById('enhance-overlay');
-      btn.disabled = true;
-      btn.textContent = '⏳ Enhancing…';
-      overlay.style.display = 'flex';
-      setStatus('generating', 'Enhancing prompt with Grok AI…');
-
-      try {
-        var enhanced = await window.xAI.enhancePrompt(raw);
-        _pendingEnhanced = enhanced;
-
-        // Show before / after panel
-        document.getElementById('enhance-before').textContent = raw;
-        document.getElementById('enhance-after').textContent  = enhanced;
-        document.getElementById('enhance-result').style.display = 'block';
-        document.getElementById('enhance-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-        setStatus('ready', '✨ Grok enhanced your prompt — apply or discard below');
-      } catch (e) {
-        setStatus('error', '⚠️ Enhance failed: ' + e.message);
-        if (!window.xAI.hasKey()) toggleSettings();
-      } finally {
-        btn.disabled = false;
-        btn.textContent = '✨ Enhance';
-        overlay.style.display = 'none';
-      }
-    }
-
-    function applyEnhancement() {
-      if (!_pendingEnhanced) return;
-      document.getElementById('prompt-input').value = _pendingEnhanced;
-      document.getElementById('enhance-result').style.display = 'none';
-      _pendingEnhanced = '';
-      document.getElementById('prompt-input').focus();
-      setStatus('ready', '✅ Enhanced prompt applied — click Generate Composition');
-    }
-
-    function discardEnhancement() {
-      document.getElementById('enhance-result').style.display = 'none';
-      _pendingEnhanced = '';
-      setStatus('ready', 'Original prompt kept');
-    }
 
     // ── Image generation via xAI Aurora ─────────────────────────────────────
     async function runImageGen() {
       if (!window.xAI) { setStatus('error', 'xAI module not loaded'); return; }
 
+      var p = buildParamsFromTemplate();
       var promptText = (document.getElementById('img-gen-prompt').value.trim()) ||
-                       (document.getElementById('prompt-input').value.trim());
-      if (!promptText) { setStatus('error', 'Enter a prompt or image description first'); return; }
+                       (p ? p.textContent : '');
+      if (!promptText) { setStatus('error', 'Select a template and enter text first'); return; }
 
       var btn    = document.getElementById('gen-img-btn');
       var status = document.getElementById('img-gen-status');

@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🧪 Remotion Sandbox — Remotion Studio</title>
+  <meta name="description" content="Paste Remotion TSX code and see an animated canvas preview. Understand what your composition will look like before running locally." />
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script src="env-config.js" onerror="window.ENV=window.ENV||{}"></script>
+  <style>
+    .sandbox-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      padding: 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    @media (max-width: 900px) {
+      .sandbox-layout { grid-template-columns: 1fr; }
+    }
+
+    .code-editor {
+      width: 100%;
+      min-height: 420px;
+      font-family: 'Consolas', 'Monaco', 'Fira Code', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      resize: vertical;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      tab-size: 2;
+    }
+
+    .preview-box {
+      background: #000;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      aspect-ratio: 16/9;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .preview-placeholder {
+      color: var(--text-muted);
+      text-align: center;
+    }
+    .preview-placeholder .icon { font-size: 48px; margin-bottom: 12px; }
+
+    #sandbox-canvas {
+      position: absolute;
+      inset: 0;
+      display: none;
+    }
+
+    .preview-label {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .preview-controls {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: none;
+      gap: 8px;
+      background: rgba(0,0,0,0.7);
+      padding: 8px 16px;
+      border-radius: 20px;
+      align-items: center;
+    }
+    .preview-controls.visible { display: flex; }
+
+    .preview-btn {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 18px;
+      padding: 0 4px;
+      transition: color 0.15s;
+    }
+    .preview-btn:hover { color: var(--accent-light); }
+    .preview-time { color: var(--text-secondary); font-size: 12px; font-family: monospace; }
+
+    .progress-bar-wrap {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--border);
+    }
+    .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.1s linear; }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .status-dot.ready { background: var(--success); }
+    .status-dot.running { background: var(--warning); animation: pulse 1s infinite; }
+    .status-dot.error { background: var(--error); }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .detect-tag {
+      display: inline-block;
+      background: rgba(124,58,237,0.15);
+      border: 1px solid #7c3aed;
+      color: #a78bfa;
+      border-radius: 12px;
+      padding: 2px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      margin: 2px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .info-cell {
+      background: var(--bg-tertiary);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+    }
+    .info-cell .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+    .info-cell .value { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+
+    .annotation {
+      background: rgba(245,158,11,0.1);
+      border: 1px solid rgba(245,158,11,0.4);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body data-root="./">
+  <nav id="debug-nav"></nav>
+  <nav id="main-nav">
+    <a href="index.html" class="nav-logo">🎬 <span>Remotion</span> Studio</a>
+    <div id="nav-search-container">
+      <input type="text" id="nav-search" placeholder="Search..." autocomplete="off" />
+      <span class="search-icon">🔍</span>
+      <div id="search-dropdown"></div>
+    </div>
+    <div id="content-nav-items"></div>
+    <div class="nav-actions">
+      <a href="https://github.com/rifaterdemsahin/remotion-with-a-prompt" target="_blank" class="nav-social-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.09.68-.22.68-.48l-.01-1.69c-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0112 6.8c.85.004 1.71.11 2.51.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85l-.01 2.75c0 .27.18.58.69.48A10.02 10.02 0 0022 12c0-5.52-4.48-10-10-10z"/></svg></a>
+      <a href="https://www.linkedin.com/in/rifaterdemsahin/" target="_blank" class="nav-social-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+      <a href="https://www.youtube.com/@RifatErdemSahin" target="_blank" class="nav-social-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+      <button id="debug-toggle-btn" onclick="window.toggleDebug()">🐛</button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <div class="hero" style="padding-bottom:8px">
+    <h1>🧪 Remotion Sandbox</h1>
+    <p>Paste any Remotion TSX composition and get an animated canvas preview. The sandbox detects your animation patterns and approximates the visual output — <strong>no build step required.</strong></p>
+  </div>
+
+  <div class="sandbox-layout">
+
+    <!-- Left: Code Input -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <!-- Code Editor Card -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div class="card-title" style="margin-bottom:0">💻 Paste Remotion TSX</div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-secondary btn-sm" onclick="loadExample()">Load example</button>
+            <button class="btn btn-primary btn-sm" onclick="runSandbox()">▶ Run Preview</button>
+          </div>
+        </div>
+        <textarea
+          id="sandbox-code"
+          class="code-editor"
+          placeholder="// Paste your Remotion .tsx composition here...
+// Example:
+import { AbsoluteFill, useCurrentFrame, spring } from 'remotion';
+
+export const MyVideo: React.FC = () => {
+  const frame = useCurrentFrame();
+  const opacity = spring({ frame, fps: 30, config: { damping: 200 } });
+  return (
+    &lt;AbsoluteFill style={{ background: '#0d1117', justifyContent: 'center', alignItems: 'center' }}&gt;
+      &lt;div style={{ opacity, color: 'white', fontSize: 64 }}&gt;Hello Remotion&lt;/div&gt;
+    &lt;/AbsoluteFill&gt;
+  );
+};"
+          spellcheck="false"
+        ></textarea>
+      </div>
+
+      <!-- Settings Card -->
+      <div class="card">
+        <div class="card-title">⚙️ Preview Settings</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+          <div class="form-group" style="margin-bottom:0">
+            <label>Duration (s)</label>
+            <input type="number" id="sb-duration" value="5" min="1" max="60" step="0.5" />
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label>FPS</label>
+            <select id="sb-fps">
+              <option value="24">24 fps</option>
+              <option value="30" selected>30 fps</option>
+              <option value="60">60 fps</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label>Resolution</label>
+            <select id="sb-resolution">
+              <option value="1920x1080" selected>1920×1080</option>
+              <option value="1280x720">1280×720</option>
+              <option value="1080x1080">1080×1080</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- How to Run Locally Card -->
+      <div class="card">
+        <div class="card-title">🚀 Run Locally in 3 Steps</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="background:var(--bg-tertiary);border-radius:var(--radius);padding:12px">
+            <div style="font-weight:600;margin-bottom:6px;font-size:13px">1️⃣ Bootstrap Remotion project</div>
+            <pre style="margin:0;font-size:12px;color:var(--text-secondary)">npx create-video@latest my-video
+cd my-video</pre>
+          </div>
+          <div style="background:var(--bg-tertiary);border-radius:var(--radius);padding:12px">
+            <div style="font-weight:600;margin-bottom:6px;font-size:13px">2️⃣ Paste your code</div>
+            <pre style="margin:0;font-size:12px;color:var(--text-secondary)">cp YourComposition.tsx src/Composition.tsx</pre>
+          </div>
+          <div style="background:var(--bg-tertiary);border-radius:var(--radius);padding:12px">
+            <div style="font-weight:600;margin-bottom:6px;font-size:13px">3️⃣ Open Remotion Studio</div>
+            <pre style="margin:0;font-size:12px;color:var(--text-secondary)">npx remotion studio</pre>
+          </div>
+        </div>
+        <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+          <a href="index.html" class="btn btn-primary btn-sm" style="text-decoration:none">🎬 Generate new composition →</a>
+          <a href="4_Formula/remotion-iac.html" class="btn btn-secondary btn-sm" style="text-decoration:none">📋 Full setup guide</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Preview + Analysis -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <!-- Preview -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div class="card-title" style="margin-bottom:0">▶️ Canvas Preview</div>
+          <div style="display:flex;gap:6px">
+            <button id="sb-download-btn" class="btn btn-secondary btn-sm" onclick="downloadSandboxPreview()" style="display:none">⬇️ WebM</button>
+            <button class="btn btn-primary btn-sm" onclick="runSandbox()">▶ Run</button>
+          </div>
+        </div>
+        <div class="preview-box" id="sb-preview-box">
+          <div class="preview-placeholder" id="sb-placeholder">
+            <div class="icon">🎥</div>
+            <p style="color:var(--text-muted);font-size:14px">Paste code and click Run Preview</p>
+          </div>
+          <canvas id="sandbox-canvas"></canvas>
+          <div class="preview-label" id="sb-preview-label" style="display:none">Canvas Approximation</div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar" id="sb-progress-bar"></div>
+          </div>
+          <div class="preview-controls" id="sb-preview-controls">
+            <button class="preview-btn" id="sb-play-btn" onclick="sbTogglePlay()">⏸</button>
+            <span class="preview-time" id="sb-preview-time">0.0s / 5.0s</span>
+            <button class="preview-btn" onclick="sbResetPreview()">↺</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div class="status-bar" id="sb-status-bar">
+        <div class="status-dot" id="sb-status-dot"></div>
+        <span id="sb-status-text">Paste Remotion TSX above and click Run Preview</span>
+      </div>
+
+      <!-- Code Analysis -->
+      <div class="card" id="sb-analysis-card" style="display:none">
+        <div class="card-title">🔍 Code Analysis</div>
+        <div id="sb-detected-tags" style="margin-bottom:14px"></div>
+        <div class="info-grid" id="sb-info-grid"></div>
+        <div class="annotation">
+          <strong>⚠️ Note:</strong> This is a <em>canvas approximation</em> of your Remotion composition.
+          Spring physics, timing, and custom logic are estimated from your code patterns.
+          Run <code>npx remotion studio</code> locally for pixel-perfect rendering.
+        </div>
+      </div>
+
+      <!-- Remotion Project Structure -->
+      <div class="card">
+        <div class="card-title">📂 Remotion Project Structure</div>
+        <pre style="font-size:12px;color:var(--text-secondary);margin:0;line-height:1.8">my-video/
+├── package.json          ← remotion + react dependencies
+├── tsconfig.json         ← TypeScript config
+├── remotion.config.ts    ← render settings
+└── src/
+    ├── index.ts          ← entry point
+    ├── Root.tsx          ← &lt;Composition&gt; registrations
+    └── <strong style="color:var(--accent-light)">Composition.tsx   ← ← your code goes here</strong></pre>
+        <div style="margin-top:12px">
+          <a href="4_Formula/remotion-iac.html" class="btn btn-secondary btn-sm" style="text-decoration:none">View full IaC setup →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>
+      🎬 Remotion Studio &nbsp;|&nbsp;
+      <a href="templates.html">Templates</a> &nbsp;|&nbsp;
+      <a href="sandbox.html">Sandbox</a> &nbsp;|&nbsp;
+      <a href="https://github.com/rifaterdemsahin/remotion-with-a-prompt" target="_blank">GitHub</a> &nbsp;|&nbsp;
+      Built with the <a href="1_Real_Unknown/index.html">7-Stage Self-Learning Framework</a>
+    </p>
+  </footer>
+
+  <script src="assets/nav-component.js"></script>
+  <script>
+    // ── State ─────────────────────────────────────────────────────────────────
+    var sbAnim = null;
+    var sbIsPlaying = false;
+    var sbFrame = 0;
+    var sbTotalFrames = 150;
+    var sbFPS = 30;
+    var sbParsed = null;
+    var sbMediaRecorder = null;
+    var sbRecordedChunks = [];
+
+    // ── Status ────────────────────────────────────────────────────────────────
+    function sbSetStatus(type, msg) {
+      document.getElementById('sb-status-dot').className = 'status-dot ' + type;
+      document.getElementById('sb-status-text').textContent = msg;
+    }
+
+    // ── Code Analysis ─────────────────────────────────────────────────────────
+    // Parse TSX code to extract Remotion patterns
+    function analyseCode(code) {
+      var c = code.toLowerCase();
+      var result = {
+        raw: code,
+        template: 'fade',
+        hasFade: false,
+        fadeIn: true,
+        hasSlide: false,
+        slideDir: 'left',
+        hasZoom: false,
+        zoomIn: false,
+        hasBounce: false,
+        hasRotate: false,
+        hasTypewriter: false,
+        hasTypewriterCursor: false,
+        hasParticle: false,
+        hasStagger: false,
+        hasWave: false,
+        hasCounter: false,
+        textContent: 'Hello World',
+        bgColor: '#0d1117',
+        textColor: '#ffffff',
+        hasGradient: false,
+        staggerItems: ['Step 1', 'Step 2', 'Step 3'],
+        counterTarget: 100,
+        hasImages: false,
+        hasLogo: false,
+        features: [],
+        imports: [],
+        usedHooks: [],
+        animationVars: [],
+      };
+
+      // Detect imports
+      var importMatches = code.match(/import\s+\{([^}]+)\}/g) || [];
+      importMatches.forEach(function(m) {
+        var names = m.replace(/import\s+\{/, '').replace(/\}/, '').split(',').map(function(s) { return s.trim(); });
+        result.imports = result.imports.concat(names.filter(Boolean));
+      });
+
+      // Detect hooks
+      if (c.includes('usecurrentframe')) result.usedHooks.push('useCurrentFrame');
+      if (c.includes('usevideoconfig')) result.usedHooks.push('useVideoConfig');
+      if (c.includes('useaudiodata')) result.usedHooks.push('useAudioData');
+
+      // Detect animation calls
+      if (c.includes('spring(')) result.animationVars.push('spring');
+      if (c.includes('interpolate(')) result.animationVars.push('interpolate');
+
+      // Extract background color from code
+      var bgMatch = code.match(/background['":\s]+['"]?(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\))/);
+      if (bgMatch) result.bgColor = bgMatch[1];
+
+      // Extract color from code
+      var colorMatch = code.match(/color['":\s]+['"]?(#[0-9a-fA-F]{3,8})/);
+      if (colorMatch) result.textColor = colorMatch[1];
+
+      // Extract string content (text in JSX)
+      var textMatch = code.match(/>([A-Za-z0-9 !,.']+)</);
+      if (textMatch && textMatch[1].trim().length > 2) result.textContent = textMatch[1].trim().slice(0, 60);
+
+      // Detect animation pattern from variable names and logic
+      if (c.includes('opacity') && (c.includes('spring') || c.includes('interpolate'))) {
+        result.hasFade = true; result.fadeIn = true; result.features.push('fade');
+      }
+      if (c.includes('translatex') || c.includes('translate(')) {
+        result.hasSlide = true; result.features.push('slide');
+        if (c.includes('-100') || c.includes('left')) result.slideDir = 'left';
+        else if (c.includes('100') || c.includes('right')) result.slideDir = 'right';
+      }
+      if (c.includes('scale')) {
+        result.hasZoom = true; result.zoomIn = true; result.features.push('zoom');
+      }
+      if (c.includes('bounce') || (c.includes('damping: 8') || c.includes('damping:8'))) {
+        result.hasBounce = true; result.features.push('bounce');
+      }
+      if (c.includes('rotate')) {
+        result.hasRotate = true; result.features.push('rotate');
+      }
+      if (c.includes('slice(') || c.includes('.slice(0,') || (c.includes('frame') && c.includes('charstoshow'))) {
+        result.hasTypewriter = true; result.features.push('typewriter');
+      }
+      if (c.includes('particle') || c.includes('floating')) {
+        result.hasParticle = true; result.features.push('particle');
+      }
+      if (c.includes('map(') && c.includes('delay')) {
+        result.hasStagger = true; result.features.push('stagger');
+      }
+      if (c.includes('math.sin') && c.includes('char')) {
+        result.hasWave = true; result.features.push('wave');
+      }
+      if (c.includes('math.round') && c.includes('target')) {
+        result.hasCounter = true; result.features.push('counter');
+      }
+      if (c.includes('gradient')) {
+        result.hasGradient = true; result.features.push('gradient');
+      }
+
+      // Detect Remotion components
+      if (c.includes('<sequence')) result.features.push('Sequence');
+      if (c.includes('<img') || c.includes('<absolutefill')) {
+        if (c.includes('<img')) { result.hasImages = true; result.features.push('Img'); }
+        result.features.push('AbsoluteFill');
+      }
+      if (c.includes('<audio')) result.features.push('Audio');
+
+      // Route to template
+      if (result.hasParticle) result.template = 'particle';
+      else if (result.hasTypewriter) result.template = 'typewriter';
+      else if (result.hasStagger) result.template = 'stagger';
+      else if (result.hasCounter) result.template = 'counter';
+      else if (result.hasWave) result.template = 'wave';
+      else if (result.hasBounce) result.template = 'bounce';
+      else if (result.hasRotate) result.template = 'rotate';
+      else if (result.hasZoom) result.template = 'zoom';
+      else if (result.hasSlide) result.template = 'slide';
+      else result.template = 'fade';
+
+      return result;
+    }
+
+    function showAnalysis(p) {
+      var card = document.getElementById('sb-analysis-card');
+      card.style.display = 'block';
+
+      // Tags
+      var tagsHTML = '';
+      if (p.features.length > 0) {
+        p.features.forEach(function(f) { tagsHTML += '<span class="detect-tag">' + f + '</span>'; });
+      } else {
+        tagsHTML = '<span style="color:var(--text-muted);font-size:13px">No specific patterns detected — using fade approximation</span>';
+      }
+      document.getElementById('sb-detected-tags').innerHTML = tagsHTML;
+
+      // Info grid
+      var importsStr = p.imports.slice(0,6).join(', ') || 'none detected';
+      var hooksStr = p.usedHooks.join(', ') || 'none';
+      var animStr = p.animationVars.join(', ') || 'none';
+      document.getElementById('sb-info-grid').innerHTML =
+        '<div class="info-cell"><div class="label">Template mapped</div><div class="value">' + p.template + '</div></div>' +
+        '<div class="info-cell"><div class="label">Remotion imports</div><div class="value" style="font-size:12px">' + importsStr + '</div></div>' +
+        '<div class="info-cell"><div class="label">Hooks used</div><div class="value" style="font-size:12px">' + hooksStr + '</div></div>' +
+        '<div class="info-cell"><div class="label">Animations</div><div class="value" style="font-size:12px">' + animStr + '</div></div>';
+    }
+
+    // ── Run Sandbox ───────────────────────────────────────────────────────────
+    function runSandbox() {
+      var code = document.getElementById('sandbox-code').value.trim();
+      if (!code) { sbSetStatus('error', 'Paste Remotion TSX code first'); return; }
+
+      var durationSec = parseFloat(document.getElementById('sb-duration').value) || 5;
+      var fps = parseInt(document.getElementById('sb-fps').value) || 30;
+      var res = document.getElementById('sb-resolution').value;
+      var parts = res.split('x');
+      var width = parseInt(parts[0]);
+      var height = parseInt(parts[1]);
+
+      sbTotalFrames = Math.round(durationSec * fps);
+      sbFPS = fps;
+
+      sbSetStatus('running', 'Analysing code…');
+
+      var p = analyseCode(code);
+      sbParsed = p;
+      showAnalysis(p);
+
+      sbSetStatus('running', 'Starting preview…');
+      sbStartPreview(p, durationSec, fps, width, height);
+      sbSetStatus('ready', '✅ Preview running — mapped to "' + p.template + '" template · ' + durationSec + 's @ ' + fps + 'fps');
+    }
+
+    // ── Canvas Preview ─────────────────────────────────────────────────────────
+    function sbStartPreview(p, durationSec, fps, width, height) {
+      if (sbAnim) cancelAnimationFrame(sbAnim);
+      sbIsPlaying = true;
+      sbFrame = 0;
+
+      var canvas = document.getElementById('sandbox-canvas');
+      var ctx = canvas.getContext('2d');
+      canvas.width = width;
+      canvas.height = height;
+      canvas.style.display = 'block';
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
+      canvas.style.objectFit = 'contain';
+
+      document.getElementById('sb-placeholder').style.display = 'none';
+      document.getElementById('sb-preview-label').style.display = 'block';
+      document.getElementById('sb-preview-controls').classList.add('visible');
+      document.getElementById('sb-play-btn').textContent = '⏸';
+      document.getElementById('sb-download-btn').style.display = '';
+
+      var lastTime = null;
+      var frameDuration = 1000 / fps;
+
+      function tick(timestamp) {
+        if (!sbIsPlaying) return;
+        if (!lastTime) lastTime = timestamp;
+        var elapsed = timestamp - lastTime;
+        if (elapsed >= frameDuration) {
+          lastTime = timestamp - (elapsed % frameDuration);
+          sbRenderFrame(ctx, canvas, p, sbFrame, fps, sbTotalFrames, durationSec);
+
+          var progress = (sbFrame / sbTotalFrames) * 100;
+          document.getElementById('sb-progress-bar').style.width = progress + '%';
+          var curTime = (sbFrame / fps).toFixed(1);
+          document.getElementById('sb-preview-time').textContent = curTime + 's / ' + durationSec.toFixed(1) + 's';
+
+          sbFrame++;
+          if (sbFrame > sbTotalFrames) sbFrame = 0;
+        }
+        sbAnim = requestAnimationFrame(tick);
+      }
+      sbAnim = requestAnimationFrame(tick);
+    }
+
+    function sbRenderFrame(ctx, canvas, p, frame, fps, total, durationSec) {
+      var W = canvas.width, H = canvas.height;
+      var t = frame / fps;
+      var progress = frame / total;
+
+      function sbSpring(fr, delay, stiff, damp) {
+        delay = delay || 0;
+        stiff = stiff || 80;
+        damp  = damp  || 200;
+        var f = Math.max(0, fr - delay);
+        var omega = Math.sqrt(stiff);
+        var zeta  = damp / (2 * Math.sqrt(stiff));
+        if (zeta >= 1) return 1 - Math.exp(-omega * f / fps);
+        var omegaD = omega * Math.sqrt(1 - zeta * zeta);
+        return Math.max(0, Math.min(1, 1 - Math.exp(-zeta * omega * f / fps) * Math.cos(omegaD * f / fps)));
+      }
+
+      // Background
+      if (p.bgColor === 'gradient') {
+        var grad = ctx.createLinearGradient(0,0,W,H);
+        grad.addColorStop(0, '#1a0533'); grad.addColorStop(1, '#0d2137');
+        ctx.fillStyle = grad;
+      } else {
+        ctx.fillStyle = p.bgColor || '#0d1117';
+      }
+      ctx.fillRect(0, 0, W, H);
+
+      var textContent = p.textContent || 'Hello World';
+      var baseFont = Math.round(H * 0.09);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      if (p.template === 'fade' || (!p.hasSlide && !p.hasZoom && !p.hasBounce && !p.hasRotate)) {
+        var opacity = sbSpring(frame, 0, 80, 200);
+        ctx.globalAlpha = opacity;
+        ctx.fillStyle = p.textColor || '#ffffff';
+        if (p.hasGradient) {
+          var grd = ctx.createLinearGradient(W*0.1, H/2, W*0.9, H/2);
+          grd.addColorStop(0,'#ff6b6b'); grd.addColorStop(0.33,'#ffd93d');
+          grd.addColorStop(0.66,'#6bcb77'); grd.addColorStop(1,'#4d96ff');
+          ctx.fillStyle = grd;
+        }
+        ctx.font = 'bold ' + baseFont + 'px sans-serif';
+        ctx.fillText(textContent, W/2, H/2);
+        ctx.globalAlpha = 1;
+
+      } else if (p.template === 'slide') {
+        var slideP = sbSpring(frame, 0, 60, 100);
+        var fromX = p.slideDir === 'left' ? -W*0.4 : p.slideDir === 'right' ? W*0.4 : 0;
+        var fromY = p.slideDir === 'up' ? -H*0.3 : p.slideDir === 'down' ? H*0.3 : 0;
+        var tx = fromX * (1 - slideP);
+        var ty = fromY * (1 - slideP);
+        ctx.save();
+        ctx.translate(W/2 + tx, H/2 + ty);
+        ctx.globalAlpha = sbSpring(frame, 0, 80, 200);
+        ctx.fillStyle = p.textColor || '#ffffff';
+        ctx.font = 'bold ' + baseFont + 'px sans-serif';
+        ctx.fillText(textContent, 0, 0);
+        ctx.restore();
+
+      } else if (p.template === 'zoom') {
+        var zoomP = sbSpring(frame, 0, 80, 150);
+        var scale = 0.3 + zoomP * 0.7;
+        ctx.save();
+        ctx.translate(W/2, H/2);
+        ctx.scale(scale, scale);
+        ctx.globalAlpha = zoomP;
+        ctx.fillStyle = p.textColor || '#ffffff';
+        ctx.font = 'bold ' + baseFont + 'px sans-serif';
+        ctx.fillText(textContent, 0, 0);
+        ctx.restore();
+
+      } else if (p.template === 'bounce') {
+        var bounceP = sbSpring(frame, 0, 200, 8);
+        var bY = (1 - bounceP) * (-H * 0.3);
+        ctx.save();
+        ctx.translate(W/2, H/2 + bY);
+        ctx.fillStyle = p.textColor || '#ffffff';
+        ctx.font = 'bold ' + baseFont + 'px sans-serif';
+        ctx.fillText(textContent, 0, 0);
+        ctx.restore();
+
+      } else if (p.template === 'rotate') {
+        var rotP = sbSpring(frame, 0, 80, 120);
+        ctx.save();
+        ctx.translate(W/2, H/2);
+        ctx.rotate((1 - rotP) * Math.PI * 2);
+        ctx.globalAlpha = rotP;
+        ctx.fillStyle = p.textColor || '#ffffff';
+        ctx.font = 'bold ' + baseFont + 'px sans-serif';
+        ctx.fillText(textContent, 0, 0);
+        ctx.restore();
+
+      } else if (p.template === 'typewriter') {
+        var charRate = fps * 0.06;
+        var charsToShow = Math.min(Math.floor(frame / charRate), textContent.length);
+        var displayed = textContent.slice(0, charsToShow);
+        ctx.fillStyle = p.textColor || '#50fa7b';
+        ctx.font = 'bold ' + baseFont + 'px monospace';
+        ctx.fillText(displayed, W/2, H/2);
+
+      } else if (p.template === 'particle') {
+        var particleCount = p.particleCount || 40;
+        for (var i = 0; i < particleCount; i++) {
+          var px = (Math.sin(i * 127.1) * 0.5 + 0.5) * W;
+          var baseY = (Math.cos(i * 311.7) * 0.5 + 0.5) * H;
+          var speed = 0.3 + (i % 5) * 0.15;
+          var py = ((baseY - (t * speed * H * 0.1)) % H + H) % H;
+          var alpha = (Math.sin(t * 2 + i) * 0.5 + 0.5) * 0.8 + 0.2;
+          var r = 2 + (i % 4) * 1.5;
+          ctx.beginPath();
+          ctx.arc(px, py, r, 0, Math.PI*2);
+          ctx.fillStyle = (p.particleColor || '#7c3aed').replace(')', ', ' + alpha + ')').replace('rgb', 'rgba');
+          if (!ctx.fillStyle.includes('rgba')) ctx.globalAlpha = alpha;
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        }
+        ctx.fillStyle = p.textColor || '#ffffff';
+        ctx.font = 'bold ' + baseFont + 'px sans-serif';
+        var textOpacity = sbSpring(frame, Math.round(fps * 0.3), 80, 200);
+        ctx.globalAlpha = textOpacity;
+        ctx.fillText(textContent, W/2, H/2);
+        ctx.globalAlpha = 1;
+
+      } else if (p.template === 'stagger') {
+        var items = p.staggerItems || ['Step 1','Step 2','Step 3'];
+        var lineH = baseFont * 1.6;
+        var totalH = items.length * lineH;
+        var startY = H/2 - totalH/2 + lineH/2;
+        ctx.fillStyle = p.textColor || '#ffffff';
+        ctx.font = 'bold ' + Math.round(baseFont * 0.7) + 'px sans-serif';
+        items.forEach(function(item, i) {
+          var delay = Math.round(i * fps * 0.25);
+          var alpha = sbSpring(frame, delay, 150, 200);
+          var tx2 = (1 - alpha) * (-W * 0.05);
+          ctx.globalAlpha = alpha;
+          ctx.fillText(item, W/2 + tx2, startY + i * lineH);
+        });
+        ctx.globalAlpha = 1;
+
+      } else if (p.template === 'wave') {
+        var chars = textContent.split('');
+        var totalW2 = chars.length * baseFont * 0.6;
+        var startX2 = W/2 - totalW2/2 + baseFont * 0.3;
+        var hue = (t * 60) % 360;
+        chars.forEach(function(ch, i) {
+          var cy = H/2 + Math.sin(t * Math.PI * 2 * 1.5 + i * 0.5) * H * 0.06;
+          ctx.fillStyle = 'hsl(' + ((hue + i * 20) % 360) + ', 80%, 65%)';
+          ctx.font = 'bold ' + baseFont + 'px sans-serif';
+          ctx.fillText(ch, startX2 + i * baseFont * 0.6, cy);
+        });
+
+      } else if (p.template === 'counter') {
+        var target = p.counterTarget || 100;
+        var easedP = sbSpring(frame, 0, 60, 200);
+        var current = Math.round(easedP * target);
+        ctx.fillStyle = p.textColor || '#ffffff';
+        ctx.font = 'bold ' + Math.round(H * 0.18) + 'px sans-serif';
+        ctx.fillText((p.counterPrefix || '') + current + (p.counterSuffix || ''), W/2, H/2);
+      }
+    }
+
+    // ── Playback Controls ─────────────────────────────────────────────────────
+    function sbTogglePlay() {
+      sbIsPlaying = !sbIsPlaying;
+      document.getElementById('sb-play-btn').textContent = sbIsPlaying ? '⏸' : '▶';
+      if (sbIsPlaying && sbParsed) {
+        var durationSec = parseFloat(document.getElementById('sb-duration').value) || 5;
+        var fps = parseInt(document.getElementById('sb-fps').value) || 30;
+        var res = document.getElementById('sb-resolution').value.split('x');
+        sbStartPreview(sbParsed, durationSec, fps, parseInt(res[0]), parseInt(res[1]));
+      }
+    }
+
+    function sbResetPreview() {
+      sbFrame = 0;
+    }
+
+    // ── WebM Download ─────────────────────────────────────────────────────────
+    function downloadSandboxPreview() {
+      var canvas = document.getElementById('sandbox-canvas');
+      if (!canvas || !sbParsed) return;
+      var stream = canvas.captureStream(sbFPS);
+      sbRecordedChunks = [];
+      sbMediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 5000000 });
+      sbMediaRecorder.ondataavailable = function(e) { if (e.data.size > 0) sbRecordedChunks.push(e.data); };
+      sbMediaRecorder.onstop = function() {
+        var blob = new Blob(sbRecordedChunks, { type: 'video/webm' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url; a.download = 'sandbox-preview.webm'; a.click();
+        URL.revokeObjectURL(url);
+        sbSetStatus('ready', '✅ WebM downloaded');
+      };
+
+      sbFrame = 0;
+      sbMediaRecorder.start();
+      var recordDuration = (sbTotalFrames / sbFPS) * 1000;
+      setTimeout(function() {
+        if (sbMediaRecorder && sbMediaRecorder.state === 'recording') sbMediaRecorder.stop();
+      }, recordDuration + 200);
+      sbSetStatus('running', '⏺ Recording WebM… (' + (recordDuration/1000).toFixed(1) + 's)');
+    }
+
+    // ── Example Loader ────────────────────────────────────────────────────────
+    function loadExample() {
+      document.getElementById('sandbox-code').value = [
+        'import React from "react";',
+        'import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring, interpolate } from "remotion";',
+        '',
+        'export const MyComposition: React.FC = () => {',
+        '  const frame = useCurrentFrame();',
+        '  const { fps } = useVideoConfig();',
+        '',
+        '  // Fade in opacity',
+        '  const opacity = spring({',
+        '    fps,',
+        '    frame,',
+        '    config: { damping: 200, stiffness: 80 },',
+        '    durationInFrames: Math.round(fps * 0.8),',
+        '  });',
+        '',
+        '  // Scale up (zoom)',
+        '  const scale = spring({',
+        '    fps,',
+        '    frame,',
+        '    config: { damping: 150, stiffness: 80 },',
+        '    durationInFrames: Math.round(fps * 1.2),',
+        '  });',
+        '  const scaleMapped = interpolate(scale, [0, 1], [0.5, 1]);',
+        '',
+        '  return (',
+        '    <AbsoluteFill style={{ background: \'#0d1117\', justifyContent: \'center\', alignItems: \'center\' }}>',
+        '      <div style={{',
+        '        opacity,',
+        '        transform: `scale(${scaleMapped})`,',
+        '        color: \'#ffffff\',',
+        '        fontSize: 72,',
+        '        fontWeight: 800,',
+        '        fontFamily: \'sans-serif\',',
+        '      }}>',
+        '        Hello Remotion',
+        '      </div>',
+        '    </AbsoluteFill>',
+        '  );',
+        '};',
+      ].join('\n');
+      sbSetStatus('ready', 'Example loaded — click Run Preview');
+    }
+
+    // ── Init ──────────────────────────────────────────────────────────────────
+    // Load code from sessionStorage if navigated from Studio
+    window.addEventListener('load', function() {
+      var storedCode = sessionStorage.getItem('sandbox_code');
+      if (storedCode) {
+        sessionStorage.removeItem('sandbox_code');
+        document.getElementById('sandbox-code').value = storedCode;
+        sbSetStatus('ready', 'Code loaded from Studio — click Run Preview');
+      }
+    });
+  </script>
+</body>
+</html>
