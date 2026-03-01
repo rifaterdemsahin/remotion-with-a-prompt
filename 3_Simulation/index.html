@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎨 3 Simulation — Remotion Prompt Studio</title>
+  <link rel="stylesheet" href="../assets/styles.css" />
+  <style>
+    .mockup-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .mockup-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .mockup-preview {
+      aspect-ratio: 16/9;
+      background: #000;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mockup-preview canvas { width: 100%; height: 100%; }
+
+    .mockup-info { padding: 16px; }
+    .mockup-info h3 { font-size: 15px; margin-bottom: 4px; }
+    .mockup-info p { font-size: 12px; color: var(--text-secondary); }
+  </style>
+</head>
+<body data-root="../">
+  <nav id="debug-nav"></nav>
+  <nav id="main-nav">
+    <a href="../index.html" class="nav-logo">🎬 <span>Remotion</span> Studio</a>
+    <div id="nav-search-container"><input type="text" id="nav-search" placeholder="Search..." autocomplete="off" /><span class="search-icon">🔍</span><div id="search-dropdown"></div></div>
+    <div id="content-nav-items"></div>
+    <div class="nav-actions">
+      <a href="https://github.com/rifaterdemsahin/remotion-with-a-prompt" target="_blank" class="nav-social-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.09.68-.22.68-.48l-.01-1.69c-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0112 6.8c.85.004 1.71.11 2.51.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85l-.01 2.75c0 .27.18.58.69.48A10.02 10.02 0 0022 12c0-5.52-4.48-10-10-10z"/></svg></a>
+      <a href="https://www.linkedin.com/in/rifaterdemsahin/" target="_blank" class="nav-social-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+      <a href="https://www.youtube.com/@RifatErdemSahin" target="_blank" class="nav-social-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+      <button id="debug-toggle-btn" onclick="window.toggleDebug()">🐛</button>
+    </div>
+  </nav>
+
+  <div class="page-content">
+    <div class="hero" style="text-align:left;padding-bottom:16px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <span style="font-size:48px">🎨</span>
+        <div>
+          <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em">Stage 3 of 7</div>
+          <h1 style="font-size:32px;font-weight:800;margin:0">Simulation</h1>
+        </div>
+      </div>
+      <p style="color:var(--text-secondary);max-width:600px">The <strong>"Vision"</strong> — UI mockups and animated previews showing the system in action.</p>
+    </div>
+
+    <!-- Carousel -->
+    <div class="card" style="margin-bottom:24px">
+      <div class="card-title">🎠 Animation Showcase Carousel</div>
+      <div class="carousel" id="carousel">
+        <button class="carousel-btn prev" onclick="carouselPrev()">‹</button>
+        <button class="carousel-btn next" onclick="carouselNext()">›</button>
+        <div class="carousel-track" id="carousel-track"></div>
+      </div>
+      <div class="carousel-controls" id="carousel-dots"></div>
+    </div>
+
+    <!-- Mockup Grid -->
+    <div class="card-title" style="margin-bottom:12px">📐 UI Mockups</div>
+    <div class="mockup-grid" id="mockup-grid">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <footer><p>🎬 Remotion Prompt Studio &nbsp;|&nbsp; <a href="https://github.com/rifaterdemsahin/remotion-with-a-prompt">GitHub</a> &nbsp;|&nbsp; <a href="https://www.linkedin.com/in/rifaterdemsahin/">LinkedIn</a> &nbsp;|&nbsp; <a href="https://www.youtube.com/@RifatErdemSahin">YouTube</a></p></footer>
+
+  <script src="../assets/nav-component.js"></script>
+  <script>
+    // ── Carousel ──────────────────────────────────────────────────────────────
+    var slides = [
+      { title: '🎬 Prompt Studio', desc: 'Enter a prompt, upload images, generate code', color1: '#7c3aed', color2: '#3b82f6', text: 'Prompt Studio' },
+      { title: '🖼️ Image Loading', desc: 'Drag & drop or URL-based image loading', color1: '#059669', color2: '#0891b2', text: 'Image Loading' },
+      { title: '▶️ Live Preview', desc: 'CSS Canvas animation preview', color1: '#dc2626', color2: '#ea580c', text: 'Live Preview' },
+      { title: '💻 Code Output', desc: 'Production-ready Remotion TSX', color1: '#7c3aed', color2: '#ec4899', text: 'Code Output' },
+      { title: '🧪 Test Results', desc: 'Validated against OKRs', color1: '#0891b2', color2: '#7c3aed', text: 'Test Results' },
+    ];
+
+    var currentSlide = 0;
+
+    function buildCarousel() {
+      var track = document.getElementById('carousel-track');
+      var dots = document.getElementById('carousel-dots');
+
+      track.innerHTML = slides.map(function(s, i) {
+        return '<div class="carousel-slide">' +
+          '<canvas id="slide-canvas-' + i + '" width="640" height="200" style="border-radius:8px;max-width:100%"></canvas>' +
+          '</div>';
+      }).join('');
+
+      dots.innerHTML = slides.map(function(_, i) {
+        return '<button class="carousel-dot' + (i === 0 ? ' active' : '') + '" onclick="goToSlide(' + i + ')"></button>';
+      }).join('');
+
+      slides.forEach(function(s, i) {
+        renderSlide(i, s);
+      });
+
+      // Auto-advance
+      setInterval(function() { goToSlide((currentSlide + 1) % slides.length); }, 3500);
+    }
+
+    function renderSlide(i, s) {
+      var canvas = document.getElementById('slide-canvas-' + i);
+      if (!canvas) return;
+      var ctx = canvas.getContext('2d');
+      var w = canvas.width, h = canvas.height;
+
+      var grad = ctx.createLinearGradient(0, 0, w, h);
+      grad.addColorStop(0, s.color1);
+      grad.addColorStop(1, s.color2);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = 'rgba(255,255,255,0.08)';
+      for (var j = 0; j < 6; j++) {
+        ctx.beginPath();
+        ctx.arc(100 + j*120, h/2, 60 + j*10, 0, Math.PI*2);
+        ctx.fill();
+      }
+
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.font = 'bold 28px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(s.text, w/2, h/2 - 16);
+
+      ctx.fillStyle = 'rgba(255,255,255,0.6)';
+      ctx.font = '14px sans-serif';
+      ctx.fillText(s.desc, w/2, h/2 + 20);
+    }
+
+    function goToSlide(idx) {
+      currentSlide = idx;
+      document.getElementById('carousel-track').style.transform = 'translateX(-' + (idx * 100) + '%)';
+      document.querySelectorAll('.carousel-dot').forEach(function(dot, i) {
+        dot.classList.toggle('active', i === idx);
+      });
+    }
+
+    function carouselPrev() { goToSlide((currentSlide - 1 + slides.length) % slides.length); }
+    function carouselNext() { goToSlide((currentSlide + 1) % slides.length); }
+
+    // ── Mockup Grid ───────────────────────────────────────────────────────────
+    var mockups = [
+      { title: '🎬 Prompt Input', desc: 'Text area with example chips and settings panel', bg: ['#1a0533','#2d0a4e'], label: 'Input Panel' },
+      { title: '🖼️ Image Zone', desc: 'Drag-and-drop with URL fallback and thumbnail grid', bg: ['#0d2a1a','#0d3730'], label: 'Image Zone' },
+      { title: '▶️ Canvas Preview', desc: '16:9 animated canvas with playback controls', bg: ['#2a0d0d','#1a1a0d'], label: 'Preview' },
+      { title: '💻 Code View', desc: 'Syntax-highlighted TSX with copy/download', bg: ['#0d1a33','#0d2a4e'], label: 'Code Output' },
+    ];
+
+    function buildMockups() {
+      var grid = document.getElementById('mockup-grid');
+      grid.innerHTML = mockups.map(function(m, i) {
+        return '<div class="mockup-card">' +
+          '<div class="mockup-preview"><canvas id="mock-canvas-' + i + '" width="320" height="180"></canvas></div>' +
+          '<div class="mockup-info"><h3>' + m.title + '</h3><p>' + m.desc + '</p></div>' +
+          '</div>';
+      }).join('');
+
+      mockups.forEach(function(m, i) {
+        var c = document.getElementById('mock-canvas-' + i);
+        var ctx = c.getContext('2d');
+        var grad = ctx.createLinearGradient(0, 0, c.width, c.height);
+        grad.addColorStop(0, m.bg[0]);
+        grad.addColorStop(1, m.bg[1]);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, c.width, c.height);
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.font = 'bold 18px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(m.label, c.width/2, c.height/2);
+      });
+    }
+
+    buildCarousel();
+    buildMockups();
+  </script>
+</body>
+</html>

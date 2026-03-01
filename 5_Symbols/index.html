@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>💻 5 Symbols — Remotion Prompt Studio</title>
+  <link rel="stylesheet" href="../assets/styles.css" />
+  <style>
+    .source-grid {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 768px) { .source-grid { grid-template-columns: 1fr; } }
+
+    .source-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .source-file-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      text-align: left;
+      font-size: 13px;
+      transition: all 0.15s;
+      font-family: monospace;
+    }
+
+    .source-file-btn:hover, .source-file-btn.active {
+      border-color: var(--accent);
+      color: var(--accent-light);
+      background: var(--accent-glow);
+    }
+  </style>
+</head>
+<body data-root="../">
+  <nav id="debug-nav"></nav>
+  <nav id="main-nav">
+    <a href="../index.html" class="nav-logo">🎬 <span>Remotion</span> Studio</a>
+    <div id="nav-search-container"><input type="text" id="nav-search" placeholder="Search..." autocomplete="off" /><span class="search-icon">🔍</span><div id="search-dropdown"></div></div>
+    <div id="content-nav-items"></div>
+    <div class="nav-actions">
+      <a href="https://github.com/rifaterdemsahin/remotion-with-a-prompt" target="_blank" class="nav-social-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.09.68-.22.68-.48l-.01-1.69c-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0112 6.8c.85.004 1.71.11 2.51.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85l-.01 2.75c0 .27.18.58.69.48A10.02 10.02 0 0022 12c0-5.52-4.48-10-10-10z"/></svg></a>
+      <a href="https://www.linkedin.com/in/rifaterdemsahin/" target="_blank" class="nav-social-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+      <a href="https://www.youtube.com/@RifatErdemSahin" target="_blank" class="nav-social-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+      <button id="debug-toggle-btn" onclick="window.toggleDebug()">🐛</button>
+    </div>
+  </nav>
+
+  <div class="page-content">
+    <div class="hero" style="text-align:left;padding-bottom:16px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <span style="font-size:48px">💻</span>
+        <div>
+          <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em">Stage 5 of 7</div>
+          <h1 style="font-size:32px;font-weight:800;margin:0">Symbols</h1>
+        </div>
+      </div>
+      <p style="color:var(--text-secondary);max-width:600px">The <strong>"Reality"</strong> — Core source code, Remotion components, and the actual implementation.</p>
+    </div>
+
+    <div class="source-grid">
+      <div>
+        <div class="card-title">📁 Source Files</div>
+        <div class="source-list">
+          <button class="source-file-btn active" onclick="showSource('prompt-video')">src/PromptVideo.tsx</button>
+          <button class="source-file-btn" onclick="showSource('my-composition')">src/MyComposition.tsx</button>
+          <button class="source-file-btn" onclick="showSource('root')">src/Root.tsx</button>
+          <a href="../markdown_renderer.html?file=5_Symbols/README.md" class="source-file-btn" style="text-decoration:none;display:block">📖 README.md</a>
+        </div>
+      </div>
+      <div>
+        <div class="card-title" id="source-title">src/PromptVideo.tsx</div>
+        <div class="code-output" style="max-height:600px">
+          <pre id="source-pre"></pre>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <button class="btn btn-secondary btn-sm" onclick="copySource()">📋 Copy</button>
+          <button class="btn btn-secondary btn-sm" onclick="downloadSource()">⬇️ Download</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer><p>🎬 Remotion Prompt Studio &nbsp;|&nbsp; <a href="https://github.com/rifaterdemsahin/remotion-with-a-prompt">GitHub</a> &nbsp;|&nbsp; <a href="https://www.linkedin.com/in/rifaterdemsahin/">LinkedIn</a> &nbsp;|&nbsp; <a href="https://www.youtube.com/@RifatErdemSahin">YouTube</a></p></footer>
+
+  <script src="../assets/nav-component.js"></script>
+  <script>
+    var sources = {
+      'prompt-video': {
+        title: 'src/PromptVideo.tsx',
+        file: '../5_Symbols/src/PromptVideo.tsx'
+      },
+      'my-composition': {
+        title: 'src/MyComposition.tsx',
+        file: '../5_Symbols/src/MyComposition.tsx'
+      },
+      'root': {
+        title: 'src/Root.tsx',
+        file: '../5_Symbols/src/Root.tsx'
+      }
+    };
+
+    var currentSource = '';
+    var currentSourceText = '';
+
+    function showSource(key) {
+      var src = sources[key];
+      if (!src) return;
+
+      document.getElementById('source-title').textContent = src.title;
+      document.querySelectorAll('.source-file-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      currentSource = src.title;
+
+      fetch(src.file)
+        .then(function(r) { return r.text(); })
+        .then(function(text) {
+          currentSourceText = text;
+          document.getElementById('source-pre').textContent = text;
+        })
+        .catch(function() {
+          document.getElementById('source-pre').textContent = '// File not found: ' + src.file;
+        });
+    }
+
+    function copySource() {
+      if (!currentSourceText) return;
+      navigator.clipboard.writeText(currentSourceText).then(function() {
+        var btn = event.target;
+        btn.textContent = '✅ Copied!';
+        setTimeout(function() { btn.textContent = '📋 Copy'; }, 2000);
+      });
+    }
+
+    function downloadSource() {
+      if (!currentSourceText) return;
+      var blob = new Blob([currentSourceText], { type: 'text/plain' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = currentSource.split('/').pop();
+      a.click();
+    }
+
+    // Load default
+    showSource('prompt-video');
+  </script>
+</body>
+</html>

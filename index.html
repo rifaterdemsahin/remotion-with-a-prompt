@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎬 Remotion Prompt Studio</title>
+  <meta name="description" content="Create Remotion video animations from text prompts with image support. Powered by the 7-stage self-learning framework." />
+  <link rel="stylesheet" href="assets/styles.css" />
+  <style>
+    /* Studio-specific styles */
+    .studio-layout {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 24px;
+      padding: 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 900px) {
+      .studio-layout { grid-template-columns: 1fr; }
+    }
+
+    /* Input Panel */
+    .input-panel { display: flex; flex-direction: column; gap: 16px; }
+
+    .prompt-textarea {
+      min-height: 140px;
+      resize: vertical;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* Image Drop Zone */
+    .image-drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--bg-tertiary);
+    }
+
+    .image-drop-zone:hover, .image-drop-zone.drag-over {
+      border-color: var(--accent);
+      background: var(--accent-glow);
+    }
+
+    .image-drop-zone .drop-icon { font-size: 32px; margin-bottom: 8px; }
+    .image-drop-zone p { color: var(--text-secondary); font-size: 13px; margin-bottom: 12px; }
+    #file-input { display: none; }
+
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .image-thumb {
+      position: relative;
+      aspect-ratio: 1;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .image-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+    .image-thumb .remove-btn {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      background: rgba(0,0,0,0.7);
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .image-thumb:hover .remove-btn { opacity: 1; }
+
+    .image-thumb .var-label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.7);
+      color: var(--accent-light);
+      font-size: 9px;
+      text-align: center;
+      padding: 2px;
+      font-family: monospace;
+    }
+
+    /* Settings row */
+    .settings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* Output Panel */
+    .output-panel { display: flex; flex-direction: column; gap: 16px; }
+
+    /* Preview box */
+    .preview-box {
+      background: #000;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      aspect-ratio: 16/9;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .preview-placeholder {
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .preview-placeholder .icon { font-size: 48px; margin-bottom: 12px; }
+
+    /* Preview animation canvas */
+    #preview-canvas {
+      position: absolute;
+      inset: 0;
+      display: none;
+    }
+
+    .preview-label {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .preview-controls {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: none;
+      gap: 8px;
+      background: rgba(0,0,0,0.7);
+      padding: 8px 16px;
+      border-radius: 20px;
+      align-items: center;
+    }
+
+    .preview-controls.visible { display: flex; }
+
+    .preview-btn {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 18px;
+      padding: 0 4px;
+      transition: color 0.15s;
+    }
+
+    .preview-btn:hover { color: var(--accent-light); }
+
+    .preview-time { color: var(--text-secondary); font-size: 12px; font-family: monospace; }
+
+    .progress-bar-wrap {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--border);
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+
+    /* Code output */
+    .code-card {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .code-header .card-title { margin-bottom: 0; flex: 1; }
+
+    .code-output {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      overflow-x: auto;
+      overflow-y: auto;
+      max-height: 480px;
+      flex: 1;
+    }
+
+    .code-output pre { color: var(--text-primary); margin: 0; white-space: pre; }
+
+    /* Syntax highlight classes */
+    .kw { color: #ff79c6; }   /* keywords */
+    .fn { color: #50fa7b; }   /* functions */
+    .st { color: #f1fa8c; }   /* strings */
+    .cm { color: #6272a4; }   /* comments */
+    .ty { color: #8be9fd; }   /* types */
+    .nu { color: #bd93f9; }   /* numbers */
+    .op { color: #ff79c6; }   /* operators */
+
+    /* Generate button area */
+    .generate-bar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .generate-btn {
+      flex: 1;
+    }
+
+    .example-prompts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .example-chip {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .example-chip:hover {
+      border-color: var(--accent);
+      color: var(--accent-light);
+      background: var(--accent-glow);
+    }
+
+    /* Status bar */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .status-dot.ready { background: var(--success); }
+    .status-dot.generating { background: var(--warning); animation: pulse 1s infinite; }
+    .status-dot.error { background: var(--error); }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+  </style>
+</head>
+<body data-root="./">
+
+  <!-- Menu 1: Debug Nav -->
+  <nav id="debug-nav"></nav>
+
+  <!-- Menu 2: Main Content Nav -->
+  <nav id="main-nav">
+    <a href="index.html" class="nav-logo">🎬 <span>Remotion</span> Studio</a>
+
+    <div id="nav-search-container">
+      <input type="text" id="nav-search" placeholder="Search pages, docs..." autocomplete="off" />
+      <span class="search-icon">🔍</span>
+      <div id="search-dropdown"></div>
+    </div>
+
+    <div id="content-nav-items"></div>
+
+    <div class="nav-actions">
+      <a href="https://github.com/rifaterdemsahin/remotion-with-a-prompt" target="_blank" class="nav-social-link" title="GitHub">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.09.68-.22.68-.48l-.01-1.69c-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0112 6.8c.85.004 1.71.11 2.51.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85l-.01 2.75c0 .27.18.58.69.48A10.02 10.02 0 0022 12c0-5.52-4.48-10-10-10z"/></svg>
+      </a>
+      <a href="https://www.linkedin.com/in/rifaterdemsahin/" target="_blank" class="nav-social-link" title="LinkedIn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+      </a>
+      <a href="https://www.youtube.com/@RifatErdemSahin" target="_blank" class="nav-social-link" title="YouTube">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+      </a>
+      <button id="debug-toggle-btn" onclick="window.toggleDebug()" title="Toggle debug menu">🐛</button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>🎬 Remotion Prompt Studio</h1>
+    <p>Transform text prompts and images into Remotion video compositions. Type your vision, upload images, and get production-ready TSX code instantly.</p>
+    <div class="example-prompts" id="example-prompts">
+      <span class="example-chip" onclick="setPrompt(this)">Fade in logo with rainbow text</span>
+      <span class="example-chip" onclick="setPrompt(this)">Slide from left, zoom in title card</span>
+      <span class="example-chip" onclick="setPrompt(this)">Bounce animation with image and text overlay</span>
+      <span class="example-chip" onclick="setPrompt(this)">Rotate and scale logo reveal with dark background</span>
+      <span class="example-chip" onclick="setPrompt(this)">Smooth typewriter text animation on gradient</span>
+    </div>
+  </div>
+
+  <!-- Studio Layout -->
+  <div class="studio-layout">
+
+    <!-- Left: Input Panel -->
+    <div class="input-panel">
+
+      <!-- Prompt -->
+      <div class="card">
+        <div class="card-title">📝 Prompt</div>
+        <div class="form-group" style="margin-bottom:0">
+          <textarea
+            id="prompt-input"
+            class="prompt-textarea"
+            placeholder="Describe your video animation...&#10;e.g. 'Fade in my logo, then slide up the title text, zoom in for 3 seconds on a dark purple background'"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Images -->
+      <div class="card">
+        <div class="card-title">🖼️ Images</div>
+
+        <div class="image-drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+          <div class="drop-icon">🖼️</div>
+          <p>Drop images here or click to upload<br/><small style="color:var(--text-muted)">PNG, JPG, GIF, WebP, SVG</small></p>
+          <input type="file" id="file-input" accept="image/*" multiple />
+        </div>
+
+        <div class="form-group" style="margin-top:12px">
+          <label>Or paste image URL</label>
+          <div style="display:flex;gap:8px">
+            <input type="url" id="image-url-input" placeholder="https://example.com/image.png" />
+            <button class="btn btn-secondary btn-sm" onclick="addImageFromUrl()" style="white-space:nowrap">Add URL</button>
+          </div>
+        </div>
+
+        <div class="image-grid" id="image-grid"></div>
+      </div>
+
+      <!-- Settings -->
+      <div class="card">
+        <div class="card-title">⚙️ Settings</div>
+        <div class="settings-grid">
+          <div class="form-group" style="margin-bottom:0">
+            <label>Duration (s)</label>
+            <input type="number" id="duration" value="5" min="1" max="120" step="0.5" />
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label>FPS</label>
+            <select id="fps">
+              <option value="24">24 fps</option>
+              <option value="30" selected>30 fps</option>
+              <option value="60">60 fps</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label>Resolution</label>
+            <select id="resolution">
+              <option value="1920x1080" selected>1920×1080</option>
+              <option value="1280x720">1280×720</option>
+              <option value="1080x1080">1080×1080</option>
+              <option value="1080x1920">1080×1920</option>
+              <option value="3840x2160">3840×2160</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Generate -->
+      <div class="generate-bar">
+        <button class="btn btn-primary btn-lg generate-btn" onclick="generateComposition()">
+          🎬 Generate Composition
+        </button>
+        <button class="btn btn-secondary" onclick="clearAll()" title="Clear all">🗑️</button>
+      </div>
+
+      <!-- Status -->
+      <div class="status-bar" id="status-bar">
+        <div class="status-dot ready" id="status-dot"></div>
+        <span id="status-text">Ready — Enter a prompt and click Generate</span>
+      </div>
+
+    </div>
+
+    <!-- Right: Output Panel -->
+    <div class="output-panel">
+
+      <!-- Preview -->
+      <div class="card">
+        <div class="card-title">▶️ Preview</div>
+        <div class="preview-box" id="preview-box">
+          <div class="preview-placeholder" id="preview-placeholder">
+            <div class="icon">🎥</div>
+            <p style="color:var(--text-muted); font-size:14px">Your animation preview will appear here</p>
+          </div>
+          <canvas id="preview-canvas"></canvas>
+          <div class="preview-label" id="preview-label" style="display:none">CSS Preview (live render)</div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar" id="progress-bar"></div>
+          </div>
+          <div class="preview-controls" id="preview-controls">
+            <button class="preview-btn" id="play-btn" onclick="togglePlay()">⏸</button>
+            <span class="preview-time" id="preview-time">0.0s / 5.0s</span>
+            <button class="preview-btn" onclick="resetPreview()">↺</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Generated Code -->
+      <div class="card code-card">
+        <div class="code-header">
+          <div class="card-title" style="margin-bottom:0">💻 Generated Remotion Code</div>
+          <button class="btn btn-secondary btn-sm" onclick="copyCode()" id="copy-btn">📋 Copy</button>
+          <button class="btn btn-secondary btn-sm" onclick="downloadCode()">⬇️ Download</button>
+        </div>
+        <div class="code-output" id="code-output">
+          <pre id="code-pre" style="color:var(--text-muted); font-size:13px">// Your generated Remotion composition will appear here...
+// Enter a prompt above and click "Generate Composition"
+
+// Example output:
+// import { AbsoluteFill, useCurrentFrame, spring } from 'remotion';
+// export const MyVideo: React.FC = () => { ... }</pre>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>
+      🎬 Remotion Prompt Studio &nbsp;|&nbsp;
+      <a href="https://github.com/rifaterdemsahin/remotion-with-a-prompt" target="_blank">GitHub</a> &nbsp;|&nbsp;
+      <a href="https://www.linkedin.com/in/rifaterdemsahin/" target="_blank">LinkedIn</a> &nbsp;|&nbsp;
+      <a href="https://www.youtube.com/@RifatErdemSahin" target="_blank">YouTube</a> &nbsp;|&nbsp;
+      Built with the <a href="1_Real_Unknown/index.html">7-Stage Self-Learning Framework</a>
+    </p>
+  </footer>
+
+  <script src="assets/nav-component.js"></script>
+  <script>
+    // ── State ────────────────────────────────────────────────────────────────
+    var images = [];
+    var generatedCode = '';
+    var previewAnim = null;
+    var isPlaying = false;
+    var frame = 0;
+    var totalFrames = 150;
+    var animFPS = 30;
+
+    // ── Example prompts ──────────────────────────────────────────────────────
+    function setPrompt(el) {
+      document.getElementById('prompt-input').value = el.textContent;
+    }
+
+    // ── Image Handling ───────────────────────────────────────────────────────
+    var dropZone = document.getElementById('drop-zone');
+    var fileInput = document.getElementById('file-input');
+
+    dropZone.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      dropZone.classList.add('drag-over');
+    });
+
+    dropZone.addEventListener('dragleave', function() {
+      dropZone.classList.remove('drag-over');
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      var files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+      files.forEach(addImageFile);
+    });
+
+    fileInput.addEventListener('change', function() {
+      Array.from(this.files).forEach(addImageFile);
+      this.value = '';
+    });
+
+    function addImageFile(file) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        addImage(e.target.result, file.name);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function addImageFromUrl() {
+      var url = document.getElementById('image-url-input').value.trim();
+      if (!url) return;
+      addImage(url, url.split('/').pop() || 'image');
+      document.getElementById('image-url-input').value = '';
+    }
+
+    function addImage(src, name) {
+      var idx = images.length;
+      images.push({ src: src, name: name, varName: 'img' + (idx + 1) });
+      renderImageGrid();
+    }
+
+    function removeImage(idx) {
+      images.splice(idx, 1);
+      images.forEach(function(img, i) { img.varName = 'img' + (i + 1); });
+      renderImageGrid();
+    }
+
+    function renderImageGrid() {
+      var grid = document.getElementById('image-grid');
+      if (images.length === 0) { grid.innerHTML = ''; return; }
+      grid.innerHTML = images.map(function(img, i) {
+        return '<div class="image-thumb">' +
+          '<img src="' + img.src + '" alt="' + img.name + '" />' +
+          '<button class="remove-btn" onclick="removeImage(' + i + ')">✕</button>' +
+          '<span class="var-label">' + img.varName + '</span>' +
+          '</div>';
+      }).join('');
+    }
+
+    // ── Clear ────────────────────────────────────────────────────────────────
+    function clearAll() {
+      document.getElementById('prompt-input').value = '';
+      images = [];
+      renderImageGrid();
+      stopPreview();
+      document.getElementById('preview-placeholder').style.display = 'flex';
+      document.getElementById('preview-canvas').style.display = 'none';
+      document.getElementById('preview-label').style.display = 'none';
+      document.getElementById('preview-controls').classList.remove('visible');
+      document.getElementById('code-pre').textContent = '// Your generated Remotion composition will appear here...';
+      generatedCode = '';
+      setStatus('ready', 'Ready — Enter a prompt and click Generate');
+    }
+
+    // ── Status ───────────────────────────────────────────────────────────────
+    function setStatus(type, msg) {
+      var dot = document.getElementById('status-dot');
+      var txt = document.getElementById('status-text');
+      dot.className = 'status-dot ' + type;
+      txt.textContent = msg;
+    }
+
+    // ── Generate ─────────────────────────────────────────────────────────────
+    function generateComposition() {
+      var prompt = document.getElementById('prompt-input').value.trim();
+      if (!prompt) {
+        setStatus('error', 'Please enter a prompt first!');
+        return;
+      }
+
+      setStatus('generating', 'Generating composition...');
+
+      var durationSec = parseFloat(document.getElementById('duration').value) || 5;
+      var fps = parseInt(document.getElementById('fps').value) || 30;
+      var res = document.getElementById('resolution').value;
+      var parts = res.split('x');
+      var width = parseInt(parts[0]);
+      var height = parseInt(parts[1]);
+
+      totalFrames = Math.round(durationSec * fps);
+      animFPS = fps;
+
+      var parsed = parsePrompt(prompt);
+      var code = buildCode(parsed, durationSec, fps, width, height);
+
+      generatedCode = code;
+      document.getElementById('code-pre').innerHTML = syntaxHighlight(code);
+      setStatus('ready', 'Generated! ' + durationSec + 's at ' + fps + 'fps — ' + width + '×' + height);
+
+      startPreview(parsed, durationSec, fps, width, height);
+    }
+
+    // ── Prompt Parser ─────────────────────────────────────────────────────────
+    function parsePrompt(prompt) {
+      var p = prompt.toLowerCase();
+      return {
+        raw: prompt,
+        hasFade:      p.includes('fade'),
+        fadeIn:       p.includes('fade in') || (p.includes('fade') && !p.includes('out')),
+        fadeOut:      p.includes('fade out'),
+        hasSlide:     p.includes('slide'),
+        slideDir:     p.includes('left') ? 'left' : p.includes('right') ? 'right' : p.includes('up') ? 'up' : p.includes('down') ? 'down' : 'left',
+        hasZoom:      p.includes('zoom') || p.includes('scale'),
+        zoomIn:       p.includes('zoom in') || p.includes('zoom'),
+        hasBounce:    p.includes('bounce'),
+        hasRotate:    p.includes('rotate') || p.includes('spin'),
+        hasTypewriter: p.includes('typewriter') || p.includes('type'),
+        hasText:      p.includes('text') || p.includes('title') || p.includes('heading') || p.includes('word') || p.includes('saying'),
+        hasLogo:      p.includes('logo') || p.includes('image') || p.includes('photo') || p.includes('picture'),
+        hasGradient:  p.includes('gradient') || p.includes('rainbow'),
+        bgColor:      extractColor(p),
+        textContent:  extractQuotedText(prompt) || 'Hello World',
+        hasImages:    images.length > 0
+      };
+    }
+
+    function extractColor(p) {
+      var colors = {
+        'dark purple': '#1a0533', 'purple': '#2d0a4e', 'dark': '#0d1117',
+        'black': '#000000', 'white': '#ffffff', 'blue': '#0d2137',
+        'green': '#0d2a1a', 'red': '#2a0d0d', 'orange': '#2a1a0d',
+        'gradient': 'gradient'
+      };
+      for (var key in colors) {
+        if (p.includes(key)) return colors[key];
+      }
+      return '#0d1117';
+    }
+
+    function extractQuotedText(prompt) {
+      var match = prompt.match(/["']([^"']+)["']/);
+      if (match) return match[1];
+      // Look for "saying X" or "text X" patterns
+      var saying = prompt.match(/saying\s+([A-Za-z\s]+)/i);
+      if (saying) return saying[1].trim().slice(0, 50);
+      return null;
+    }
+
+    // ── Code Builder ──────────────────────────────────────────────────────────
+    function buildCode(p, durationSec, fps, width, height) {
+      var durationInFrames = Math.round(durationSec * fps);
+      var imageImports = images.map(function(img, i) {
+        if (img.src.startsWith('data:')) {
+          return '// ' + img.varName + ': data URI (base64 embedded image)';
+        }
+        return 'const ' + img.varName + 'Url = "' + img.src + '";';
+      }).join('\n');
+
+      var animations = buildAnimationLogic(p, fps);
+      var jsx = buildJSX(p);
+
+      var lines = [
+        '// 🎬 Generated by Remotion Prompt Studio',
+        '// Prompt: "' + p.raw + '"',
+        '//',
+        '// Run: npx create-video@latest',
+        '// Then replace src/Composition.tsx with this file',
+        '',
+        'import React from "react";',
+        'import {',
+        '  AbsoluteFill,',
+        '  useCurrentFrame,',
+        '  useVideoConfig,',
+        '  spring,',
+        '  interpolate,',
+        '  Sequence,',
+        '  Img,',
+        '  Audio,',
+        '} from "remotion";',
+        '',
+      ];
+
+      if (imageImports) {
+        lines.push(imageImports);
+        lines.push('');
+      }
+
+      lines.push(
+        'export const GeneratedComposition: React.FC = () => {',
+        '  const frame = useCurrentFrame();',
+        '  const { fps, durationInFrames, width, height } = useVideoConfig();',
+        ''
+      );
+
+      animations.forEach(function(line) { lines.push('  ' + line); });
+
+      lines.push('');
+      lines.push('  return (');
+      jsx.forEach(function(line) { lines.push('    ' + line); });
+      lines.push('  );');
+      lines.push('};');
+      lines.push('');
+      lines.push('// Register composition in Root.tsx:');
+      lines.push('// <Composition');
+      lines.push('//   id="GeneratedComposition"');
+      lines.push('//   component={GeneratedComposition}');
+      lines.push('//   durationInFrames={' + durationInFrames + '}');
+      lines.push('//   fps={' + fps + '}');
+      lines.push('//   width={' + width + '}');
+      lines.push('//   height={' + height + '}');
+      lines.push('// />');
+
+      return lines.join('\n');
+    }
+
+    function buildAnimationLogic(p, fps) {
+      var lines = [];
+
+      if (p.fadeIn || p.hasFade) {
+        lines.push('// Fade in opacity');
+        lines.push('const opacity = spring({');
+        lines.push('  fps,');
+        lines.push('  frame,');
+        lines.push('  config: { damping: 200, stiffness: 80 },');
+        lines.push('  durationInFrames: Math.round(fps * 0.8),');
+        lines.push('});');
+        lines.push('');
+      }
+
+      if (p.hasSlide) {
+        var axis = (p.slideDir === 'left' || p.slideDir === 'right') ? 'X' : 'Y';
+        var from = p.slideDir === 'left' ? -100 : p.slideDir === 'right' ? 100 : p.slideDir === 'up' ? -80 : 80;
+        lines.push('// Slide animation');
+        lines.push('const slide' + axis + ' = spring({');
+        lines.push('  fps,');
+        lines.push('  frame,');
+        lines.push('  config: { damping: 100, stiffness: 60, mass: 0.8 },');
+        lines.push('  durationInFrames: Math.round(fps * 1.0),');
+        lines.push('}) * -1 + 1;  // 0→1 progress');
+        lines.push('const translate' + axis + ' = interpolate(slide' + axis + ', [0, 1], [' + from + ', 0]);');
+        lines.push('');
+      }
+
+      if (p.hasZoom || p.zoomIn) {
+        lines.push('// Zoom / scale');
+        lines.push('const scale = spring({');
+        lines.push('  fps,');
+        lines.push('  frame,');
+        lines.push('  config: {');
+        lines.push('    damping: ' + (p.hasBounce ? '40' : '150') + ',');
+        lines.push('    stiffness: ' + (p.hasBounce ? '80' : '60') + ',');
+        lines.push('  },');
+        lines.push('  durationInFrames: Math.round(fps * 0.6),');
+        lines.push('  from: 0,');
+        lines.push('  to: 1,');
+        lines.push('});');
+        lines.push('');
+      }
+
+      if (p.hasRotate) {
+        lines.push('// Rotation');
+        lines.push('const rotation = interpolate(');
+        lines.push('  frame,');
+        lines.push('  [0, fps * 0.5],');
+        lines.push('  [180, 0],');
+        lines.push('  { extrapolateRight: "clamp" }');
+        lines.push(');');
+        lines.push('');
+      }
+
+      if (p.hasTypewriter) {
+        lines.push('// Typewriter effect');
+        lines.push('const text = "' + p.textContent + '";');
+        lines.push('const charsToShow = Math.floor(');
+        lines.push('  interpolate(frame, [0, fps * 1.5], [0, text.length], {');
+        lines.push('    extrapolateRight: "clamp",');
+        lines.push('  })');
+        lines.push(');');
+        lines.push('const displayText = text.slice(0, charsToShow);');
+        lines.push('');
+      }
+
+      if (p.fadeOut) {
+        lines.push('// Fade out near end');
+        lines.push('const fadeOutOpacity = interpolate(');
+        lines.push('  frame,');
+        lines.push('  [durationInFrames - fps * 0.5, durationInFrames],');
+        lines.push('  [1, 0],');
+        lines.push('  { extrapolateLeft: "clamp", extrapolateRight: "clamp" }');
+        lines.push(');');
+        lines.push('');
+      }
+
+      return lines;
+    }
+
+    function buildJSX(p) {
+      var lines = [];
+      var bg = p.bgColor === 'gradient'
+        ? 'background: "linear-gradient(135deg, #7c3aed, #3b82f6)"'
+        : 'backgroundColor: "' + p.bgColor + '"';
+
+      var rootStyle = [
+        bg,
+        'display: "flex"',
+        'alignItems: "center"',
+        'justifyContent: "center"',
+        'flexDirection: "column"',
+        'gap: 24',
+      ].join(', ');
+
+      lines.push('<AbsoluteFill style={{ ' + rootStyle + ' }}>');
+
+      if (p.hasImages && images.length > 0) {
+        images.forEach(function(img, i) {
+          var imgSrc = img.src.startsWith('data:') ? img.varName + 'DataUri' : img.varName + 'Url';
+          var style = buildImgStyle(p);
+          lines.push('  <Img');
+          lines.push('    src={' + imgSrc + '}');
+          lines.push('    style={{');
+          lines.push('      ' + style);
+          lines.push('    }}');
+          lines.push('  />');
+        });
+      } else if (p.hasLogo) {
+        lines.push('  {/* 🖼️ Add your image source above as imgUrl */}');
+        lines.push('  {/* <Img src={imgUrl} style={{ width: 200, height: 200, ' + buildImgStyle(p) + ' }} /> */}');
+      }
+
+      if (p.hasText || p.hasTypewriter) {
+        var textStyle = buildTextStyle(p);
+        lines.push('  <div style={{ ' + textStyle + ' }}>');
+        if (p.hasTypewriter) {
+          lines.push('    {displayText}');
+        } else {
+          lines.push('    ' + p.textContent);
+        }
+        lines.push('  </div>');
+      }
+
+      lines.push('</AbsoluteFill>');
+      return lines;
+    }
+
+    function buildImgStyle(p) {
+      var parts = [
+        'width: 320',
+        'height: 320',
+        'objectFit: "contain"',
+        'borderRadius: 16',
+      ];
+      if (p.fadeIn || p.hasFade) parts.push('opacity');
+      if (p.hasZoom) parts.push('transform: `scale(${scale})`');
+      if (p.hasSlide) {
+        var axis = (p.slideDir === 'left' || p.slideDir === 'right') ? 'X' : 'Y';
+        parts.push('transform: `translate' + axis + '(${translate' + axis + '}px)`');
+      }
+      if (p.hasRotate) parts.push('transform: `rotate(${rotation}deg)`');
+      return parts.join(', ');
+    }
+
+    function buildTextStyle(p) {
+      var parts = [
+        'fontSize: 64',
+        'fontWeight: "bold"',
+        'color: "white"',
+        'textAlign: "center"',
+        'fontFamily: "sans-serif"',
+        'textShadow: "0 4px 24px rgba(0,0,0,0.5)"',
+        'maxWidth: "80%"',
+      ];
+      if (p.hasGradient) {
+        parts.push('background: "linear-gradient(90deg, #ff79c6, #bd93f9, #50fa7b)"');
+        parts.push('WebkitBackgroundClip: "text"');
+        parts.push('WebkitTextFillColor: "transparent"');
+      }
+      if (p.fadeIn || p.hasFade) parts.push('opacity');
+      if (p.hasSlide) {
+        var axis = (p.slideDir === 'left' || p.slideDir === 'right') ? 'X' : 'Y';
+        parts.push('transform: `translate' + axis + '(${translate' + axis + '}px)`');
+      }
+      if (p.hasZoom) parts.push('transform: `scale(${scale})`');
+      return parts.join(', ');
+    }
+
+    // ── Syntax Highlighter (simple) ───────────────────────────────────────────
+    function syntaxHighlight(code) {
+      return code
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/(\/\/[^\n]*)/g, '<span class="cm">$1</span>')
+        .replace(/\b(import|export|const|let|var|return|from|as|default|if|else|Math)\b/g, '<span class="kw">$1</span>')
+        .replace(/\b(React|AbsoluteFill|useCurrentFrame|useVideoConfig|spring|interpolate|Sequence|Img|Audio)\b/g, '<span class="ty">$1</span>')
+        .replace(/("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)/g, '<span class="st">$1</span>')
+        .replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="nu">$1</span>');
+    }
+
+    // ── Copy / Download ───────────────────────────────────────────────────────
+    function copyCode() {
+      if (!generatedCode) return;
+      navigator.clipboard.writeText(generatedCode).then(function() {
+        var btn = document.getElementById('copy-btn');
+        btn.textContent = '✅ Copied!';
+        setTimeout(function() { btn.textContent = '📋 Copy'; }, 2000);
+      });
+    }
+
+    function downloadCode() {
+      if (!generatedCode) return;
+      var blob = new Blob([generatedCode], { type: 'text/plain' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'GeneratedComposition.tsx';
+      a.click();
+    }
+
+    // ── CSS Preview ───────────────────────────────────────────────────────────
+    function startPreview(parsed, durationSec, fps, width, height) {
+      stopPreview();
+
+      var canvas = document.getElementById('preview-canvas');
+      var ctx = canvas.getContext('2d');
+      var box = document.getElementById('preview-box');
+      var boxRect = box.getBoundingClientRect();
+
+      canvas.width = boxRect.width || 640;
+      canvas.height = boxRect.height || 360;
+      canvas.style.display = 'block';
+
+      document.getElementById('preview-placeholder').style.display = 'none';
+      document.getElementById('preview-label').style.display = 'block';
+      document.getElementById('preview-controls').classList.add('visible');
+
+      frame = 0;
+      isPlaying = true;
+      document.getElementById('play-btn').textContent = '⏸';
+
+      var imgElements = [];
+      var loadedCount = 0;
+
+      function startAnimation() {
+        previewAnim = setInterval(function() {
+          if (!isPlaying) return;
+          frame++;
+          if (frame >= totalFrames) { frame = 0; }
+
+          var progress = frame / totalFrames;
+          var t = frame / fps;
+
+          document.getElementById('progress-bar').style.width = (progress * 100) + '%';
+          document.getElementById('preview-time').textContent =
+            t.toFixed(1) + 's / ' + durationSec.toFixed(1) + 's';
+
+          renderFrame(ctx, canvas, parsed, frame, fps, totalFrames, imgElements, durationSec);
+        }, 1000 / fps);
+      }
+
+      if (images.length > 0) {
+        images.forEach(function(imgData, i) {
+          var el = new Image();
+          el.crossOrigin = 'anonymous';
+          el.onload = function() {
+            imgElements[i] = el;
+            loadedCount++;
+            if (loadedCount === images.length) startAnimation();
+          };
+          el.onerror = function() {
+            loadedCount++;
+            if (loadedCount === images.length) startAnimation();
+          };
+          el.src = imgData.src;
+        });
+      } else {
+        startAnimation();
+      }
+    }
+
+    function renderFrame(ctx, canvas, p, frame, fps, total, imgEls, durationSec) {
+      var w = canvas.width, h = canvas.height;
+      var t = frame / fps;
+      var progress = frame / total;
+
+      // Clear
+      ctx.clearRect(0, 0, w, h);
+
+      // Background
+      if (p.bgColor === 'gradient') {
+        var grad = ctx.createLinearGradient(0, 0, w, h);
+        grad.addColorStop(0, '#7c3aed');
+        grad.addColorStop(1, '#3b82f6');
+        ctx.fillStyle = grad;
+      } else {
+        ctx.fillStyle = p.bgColor || '#0d1117';
+      }
+      ctx.fillRect(0, 0, w, h);
+
+      // Easing
+      var fadeP = Math.min(1, t / 0.8);
+      var eased = 1 - Math.pow(1 - fadeP, 3); // ease-out-cubic
+
+      var opacity = p.fadeIn ? eased : 1;
+      if (p.fadeOut) {
+        var fadeOutStart = durationSec - 0.5;
+        if (t > fadeOutStart) {
+          opacity *= 1 - (t - fadeOutStart) / 0.5;
+        }
+      }
+
+      var scale = p.hasZoom ? (p.hasBounce ? spring2(frame, fps, 40) : eased) : 1;
+      var tx = 0, ty = 0;
+      if (p.hasSlide) {
+        var slideP = Math.min(1, t / 1.0);
+        var sEased = 1 - Math.pow(1 - slideP, 3);
+        if (p.slideDir === 'left') tx = (1 - sEased) * -100 * (w / 400);
+        else if (p.slideDir === 'right') tx = (1 - sEased) * 100 * (w / 400);
+        else if (p.slideDir === 'up') ty = (1 - sEased) * -80 * (h / 300);
+        else if (p.slideDir === 'down') ty = (1 - sEased) * 80 * (h / 300);
+      }
+
+      var rotation = 0;
+      if (p.hasRotate) {
+        var rotP = Math.min(1, t / 0.5);
+        rotation = (1 - rotP) * 180;
+      }
+
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, Math.min(1, opacity));
+
+      // Draw images
+      if (imgEls && imgEls.length > 0) {
+        imgEls.forEach(function(imgEl, i) {
+          if (!imgEl) return;
+          var iw = Math.min(w * 0.45, 240), ih = iw;
+          var ix = w / 2 - iw / 2 + tx, iy = h * 0.35 - ih / 2 + ty;
+          ctx.save();
+          ctx.translate(ix + iw/2, iy + ih/2);
+          ctx.rotate(rotation * Math.PI / 180);
+          ctx.scale(scale, scale);
+          ctx.drawImage(imgEl, -iw/2, -ih/2, iw, ih);
+          ctx.restore();
+        });
+      } else if (p.hasLogo) {
+        // Placeholder box
+        var bw = w * 0.3, bh = bw;
+        var bx = w/2 - bw/2 + tx, by = h * 0.35 - bh/2 + ty;
+        ctx.save();
+        ctx.translate(bx + bw/2, by + bh/2);
+        ctx.rotate(rotation * Math.PI / 180);
+        ctx.scale(scale, scale);
+        ctx.strokeStyle = '#7c3aed';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(-bw/2, -bh/2, bw, bh);
+        ctx.fillStyle = 'rgba(124,58,237,0.15)';
+        ctx.fillRect(-bw/2, -bh/2, bw, bh);
+        ctx.fillStyle = '#a78bfa';
+        ctx.font = 'bold ' + Math.round(bw * 0.12) + 'px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('🖼️ Logo', 0, 0);
+        ctx.restore();
+      }
+
+      // Draw text
+      if (p.hasText || p.hasTypewriter) {
+        var text = p.hasTypewriter
+          ? p.textContent.slice(0, Math.floor(t / 1.5 * p.textContent.length))
+          : p.textContent;
+
+        var fs = Math.round(Math.min(w, h) * 0.09);
+        ctx.font = 'bold ' + fs + 'px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        var textY = (p.hasImages || p.hasLogo) ? h * 0.72 : h * 0.5;
+        var textX = w / 2 + tx;
+
+        ctx.save();
+        ctx.translate(textX, textY + ty);
+        ctx.scale(scale, scale);
+
+        if (p.hasGradient) {
+          var tg = ctx.createLinearGradient(-w/3, 0, w/3, 0);
+          tg.addColorStop(0, '#ff79c6');
+          tg.addColorStop(0.5, '#bd93f9');
+          tg.addColorStop(1, '#50fa7b');
+          ctx.fillStyle = tg;
+        } else {
+          ctx.fillStyle = 'white';
+        }
+
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 12;
+        ctx.fillText(text, 0, 0);
+        ctx.restore();
+      }
+
+      ctx.restore();
+
+      // Frame counter
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.font = '11px monospace';
+      ctx.textAlign = 'right';
+      ctx.fillText('frame ' + frame + ' / ' + total, w - 8, h - 8);
+    }
+
+    function spring2(frame, fps, damping) {
+      // Simple spring simulation
+      var d = damping || 150;
+      var stiffness = 60;
+      var mass = 0.8;
+      var zeta = d / (2 * Math.sqrt(stiffness * mass));
+      var omega = Math.sqrt(stiffness / mass);
+      var t = frame / fps;
+      if (zeta < 1) {
+        var omegaD = omega * Math.sqrt(1 - zeta * zeta);
+        return 1 - Math.exp(-zeta * omega * t) * (Math.cos(omegaD * t) + (zeta * omega / omegaD) * Math.sin(omegaD * t));
+      }
+      return 1 - Math.exp(-omega * t) * (1 + omega * t);
+    }
+
+    function stopPreview() {
+      if (previewAnim) { clearInterval(previewAnim); previewAnim = null; }
+      isPlaying = false;
+    }
+
+    function togglePlay() {
+      isPlaying = !isPlaying;
+      document.getElementById('play-btn').textContent = isPlaying ? '⏸' : '▶';
+    }
+
+    function resetPreview() {
+      frame = 0;
+      if (!isPlaying) {
+        isPlaying = true;
+        document.getElementById('play-btn').textContent = '⏸';
+      }
+    }
+
+    // Handle canvas resize
+    window.addEventListener('resize', function() {
+      var canvas = document.getElementById('preview-canvas');
+      if (canvas.style.display === 'none') return;
+      var box = document.getElementById('preview-box');
+      canvas.width = box.offsetWidth;
+      canvas.height = box.offsetHeight;
+    });
+  </script>
+</body>
+</html>

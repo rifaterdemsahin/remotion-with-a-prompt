@@ -1,0 +1,23 @@
+<!-- Copy this nav block into every page -->
+<!-- Debug Nav (Menu 1) — controlled by debug cookie -->
+<nav id="debug-nav"><!-- populated by nav-component.js --></nav>
+
+<!-- Main Nav (Menu 2) -->
+<nav id="main-nav">
+  <a href="{ROOT}index.html" class="nav-logo">🎬 <span>Remotion</span> Prompt Studio</a>
+
+  <div id="nav-search-container">
+    <input type="text" id="nav-search" placeholder="Search pages, docs..." autocomplete="off" />
+    <span class="search-icon">🔍</span>
+    <div id="search-dropdown"></div>
+  </div>
+
+  <div id="content-nav-items"><!-- populated by nav-component.js --></div>
+
+  <div class="nav-actions">
+    <a href="https://github.com/rifaterdemsahin/remotion-with-a-prompt" target="_blank" class="nav-social-link" title="GitHub">⑂</a>
+    <a href="https://www.linkedin.com/in/rifaterdemsahin/" target="_blank" class="nav-social-link" title="LinkedIn">in</a>
+    <a href="https://www.youtube.com/@RifatErdemSahin" target="_blank" class="nav-social-link" title="YouTube">▶</a>
+    <button id="debug-toggle-btn" onclick="window.toggleDebug()" title="Toggle debug menu">🐛</button>
+  </div>
+</nav>

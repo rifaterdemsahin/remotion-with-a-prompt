@@ -1,0 +1,107 @@
+[
+  {
+    "title": "Remotion Prompt Studio",
+    "url": "index.html",
+    "description": "Create Remotion video animations from text prompts with image support",
+    "emoji": "🎬",
+    "tags": ["remotion", "prompt", "video", "animation", "generate"]
+  },
+  {
+    "title": "Markdown Renderer",
+    "url": "markdown_renderer.html",
+    "description": "Render and view markdown files from the repository",
+    "emoji": "📄",
+    "tags": ["markdown", "docs", "render", "view"]
+  },
+  {
+    "title": "Real Unknown — Why We Build",
+    "url": "1_Real_Unknown/index.html",
+    "description": "Problem definitions, OKRs, and the core questions driving this project",
+    "emoji": "❓",
+    "tags": ["okr", "problem", "why", "goals", "objectives"]
+  },
+  {
+    "title": "OKRs & Objectives",
+    "url": "1_Real_Unknown/okrs.md",
+    "description": "Objectives and Key Results for the Remotion Prompt Studio",
+    "emoji": "🎯",
+    "tags": ["okr", "objectives", "key results", "metrics"]
+  },
+  {
+    "title": "Environment Setup",
+    "url": "2_Environment/index.html",
+    "description": "Setup guides, constraints, and configuration for Mac, Windows, and AI clients",
+    "emoji": "🌍",
+    "tags": ["setup", "environment", "install", "docker", "ollama", "qdrant"]
+  },
+  {
+    "title": "Mac Setup Guide",
+    "url": "2_Environment/setup-mac.md",
+    "description": "Step-by-step setup guide for macOS including Node.js and Remotion",
+    "emoji": "🍎",
+    "tags": ["mac", "setup", "macos", "install", "node"]
+  },
+  {
+    "title": "Docker Compose",
+    "url": "2_Environment/docker-compose.yml",
+    "description": "Docker configuration for Qdrant and Ollama services",
+    "emoji": "🐳",
+    "tags": ["docker", "qdrant", "ollama", "containers"]
+  },
+  {
+    "title": "Simulation & Gallery",
+    "url": "3_Simulation/index.html",
+    "description": "UI mockups, design previews, and image carousel of the system",
+    "emoji": "🎨",
+    "tags": ["mockup", "design", "preview", "carousel", "ui"]
+  },
+  {
+    "title": "Formula & Guide",
+    "url": "4_Formula/index.html",
+    "description": "Step-by-step recipes, research notes, and the logic behind the build",
+    "emoji": "📐",
+    "tags": ["guide", "recipe", "steps", "how-to", "formula"]
+  },
+  {
+    "title": "Remotion Development Guide",
+    "url": "4_Formula/remotion-guide.md",
+    "description": "Detailed guide to creating Remotion compositions, props, and rendering",
+    "emoji": "🎥",
+    "tags": ["remotion", "guide", "composition", "render", "react"]
+  },
+  {
+    "title": "Source Code",
+    "url": "5_Symbols/index.html",
+    "description": "Core Remotion source code, components, and implementation",
+    "emoji": "💻",
+    "tags": ["code", "source", "remotion", "tsx", "components"]
+  },
+  {
+    "title": "PromptVideo Component",
+    "url": "5_Symbols/src/PromptVideo.tsx",
+    "description": "Core Remotion component that renders prompt-based video compositions",
+    "emoji": "⚛️",
+    "tags": ["remotion", "component", "tsx", "react", "animation"]
+  },
+  {
+    "title": "Errors & Workarounds",
+    "url": "6_Semblance/index.html",
+    "description": "Error logs, near-misses, workarounds, and lessons learned",
+    "emoji": "🐛",
+    "tags": ["errors", "bugs", "workarounds", "debug", "fixes"]
+  },
+  {
+    "title": "Testing & Proof",
+    "url": "7_Testing_Known/index.html",
+    "description": "Validation against objectives, testing checklists, and outcome confirmation",
+    "emoji": "🧪",
+    "tags": ["testing", "validation", "proof", "checklist", "qa"]
+  },
+  {
+    "title": "Testing Checklist",
+    "url": "7_Testing_Known/checklist.md",
+    "description": "Comprehensive checklist for validating all Remotion Prompt Studio features",
+    "emoji": "✅",
+    "tags": ["checklist", "testing", "validation", "qa", "tests"]
+  }
+]

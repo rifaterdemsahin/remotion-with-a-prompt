@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__HTTP_PORT=6333
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    restart: unless-stopped
+    # After startup, run: docker exec -it ollama ollama pull nomic-embed-text
+
+volumes:
+  qdrant_storage:
+  ollama_models:
+
+# Usage:
+# docker compose up -d
+# docker exec -it ollama ollama pull nomic-embed-text
+# Vector dimensions: 4096 (nomic-embed-text)
+# Qdrant UI: http://localhost:6333/dashboard
+# Ollama API: http://localhost:11434/api/embeddings
