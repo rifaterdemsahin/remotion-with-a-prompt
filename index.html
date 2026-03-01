@@ -6,6 +6,8 @@
   <title>🎬 Remotion Prompt Studio</title>
   <meta name="description" content="Create Remotion video animations from text prompts with image support. Powered by the 7-stage self-learning framework." />
   <link rel="stylesheet" href="assets/styles.css" />
+  <!-- env-config.js is gitignored; loads xAI key on local dev -->
+  <script src="env-config.js" onerror="window.ENV=window.ENV||{}"></script>
   <style>
     /* Studio-specific styles */
     .studio-layout {
@@ -375,21 +377,63 @@
     <!-- Left: Input Panel -->
     <div class="input-panel">
 
+      <!-- xAI Settings panel (collapsed by default) -->
+      <div id="xai-settings-panel" style="display:none">
+        <div class="card" style="border-color:var(--accent)">
+          <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+            <span>⚙️ xAI API Key</span>
+            <button class="btn btn-secondary btn-sm" onclick="closeSettings()">✕</button>
+          </div>
+          <div class="form-group" style="margin-bottom:8px">
+            <label>Key (saved to localStorage, never sent to any server but xAI)</label>
+            <div style="display:flex;gap:8px">
+              <input type="password" id="xai-key-input" placeholder="xai-..." autocomplete="off" />
+              <button class="btn btn-primary btn-sm" onclick="saveKey()" style="white-space:nowrap">Save</button>
+            </div>
+          </div>
+          <div id="xai-key-status" style="font-size:12px;color:var(--text-muted)">Checking...</div>
+        </div>
+      </div>
+
       <!-- Prompt -->
       <div class="card">
-        <div class="card-title">📝 Prompt</div>
-        <div class="form-group" style="margin-bottom:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div class="card-title" style="margin-bottom:0">📝 Prompt</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span id="xai-badge" style="font-size:10px;padding:2px 7px;border-radius:10px;font-weight:700;display:none"></span>
+            <button id="enhance-btn" class="btn btn-secondary btn-sm" onclick="runEnhance()" title="Enhance prompt with Grok AI">✨ Enhance</button>
+            <button class="btn btn-secondary btn-sm" onclick="toggleSettings()" title="xAI API settings">⚙️</button>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0;position:relative">
           <textarea
             id="prompt-input"
             class="prompt-textarea"
             placeholder="Describe your video animation...&#10;e.g. 'Fade in my logo, then slide up the title text, zoom in for 3 seconds on a dark purple background'"
+            autofocus
           ></textarea>
+          <div id="enhance-overlay" style="display:none;position:absolute;inset:0;background:rgba(13,17,23,0.75);border-radius:var(--radius);display:none;align-items:center;justify-content:center;font-size:13px;color:var(--accent-light)">
+            ✨ Enhancing with Grok...
+          </div>
         </div>
       </div>
 
       <!-- Images -->
       <div class="card">
-        <div class="card-title">🖼️ Images</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div class="card-title" style="margin-bottom:0">🖼️ Images</div>
+          <button id="gen-img-btn" class="btn btn-secondary btn-sm" onclick="runImageGen()" title="Generate image with xAI Aurora">🎨 Generate with AI</button>
+        </div>
+
+        <!-- AI image prompt row -->
+        <div class="form-group" style="margin-bottom:12px" id="img-gen-row" style="display:none">
+          <label>Image generation prompt <span style="color:var(--text-muted);font-weight:400">(leave blank to use video prompt)</span></label>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="img-gen-prompt" placeholder="e.g. cinematic logo, purple neon glow, dark background" />
+            <button class="btn btn-primary btn-sm" onclick="runImageGen()" style="white-space:nowrap">Generate</button>
+          </div>
+          <div id="img-gen-status" style="font-size:12px;color:var(--text-muted);margin-top:4px;display:none"></div>
+        </div>
 
         <div class="image-drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
           <div class="drop-icon">🖼️</div>
@@ -1197,6 +1241,124 @@
       canvas.width = box.offsetWidth;
       canvas.height = box.offsetHeight;
     });
+
+    // ── Autofocus prompt box on load ─────────────────────────────────────────
+    window.addEventListener('load', function() {
+      var ta = document.getElementById('prompt-input');
+      if (ta) { ta.focus(); ta.setSelectionRange(0, 0); }
+      initXaiStatus();
+    });
+
+    // ── xAI key settings ─────────────────────────────────────────────────────
+    function toggleSettings() {
+      var panel = document.getElementById('xai-settings-panel');
+      var isOpen = panel.style.display !== 'none';
+      panel.style.display = isOpen ? 'none' : 'block';
+      if (!isOpen) {
+        var input = document.getElementById('xai-key-input');
+        if (window.xAI && window.xAI.getKey()) {
+          input.placeholder = '(key saved — paste to replace)';
+        }
+        input.focus();
+      }
+    }
+
+    function closeSettings() {
+      document.getElementById('xai-settings-panel').style.display = 'none';
+    }
+
+    function saveKey() {
+      var val = document.getElementById('xai-key-input').value.trim();
+      if (!val) return;
+      window.xAI.setKey(val);
+      document.getElementById('xai-key-input').value = '';
+      initXaiStatus();
+      closeSettings();
+      setStatus('ready', 'xAI key saved — ready to enhance and generate images');
+    }
+
+    function initXaiStatus() {
+      if (!window.xAI) return;
+      var badge  = document.getElementById('xai-badge');
+      var status = document.getElementById('xai-key-status');
+      var genBtn = document.getElementById('gen-img-btn');
+      var enhBtn = document.getElementById('enhance-btn');
+      var imgRow = document.getElementById('img-gen-row');
+
+      if (window.xAI.hasKey()) {
+        badge.textContent = '⚡ xAI';
+        badge.style.cssText = 'font-size:10px;padding:2px 7px;border-radius:10px;font-weight:700;display:inline-block;background:rgba(124,58,237,0.2);color:#a78bfa;border:1px solid #7c3aed';
+        if (status) status.textContent = '✅ Key active (from ' + (((window.ENV||{}).XAI_API_KEY || '').length > 5 ? 'env-config.js' : 'localStorage') + ')';
+        if (genBtn) genBtn.style.display = '';
+        if (enhBtn) enhBtn.style.borderColor = '#7c3aed';
+        if (imgRow) imgRow.style.display = 'block';
+      } else {
+        badge.style.display = 'none';
+        if (status) status.textContent = '⚠️ No key — enter below or add env-config.js locally';
+        if (genBtn) genBtn.style.opacity = '0.5';
+      }
+    }
+
+    // ── Prompt enhancement via Grok ──────────────────────────────────────────
+    async function runEnhance() {
+      if (!window.xAI) { setStatus('error', 'xAI module not loaded'); return; }
+      var ta = document.getElementById('prompt-input');
+      var raw = ta.value.trim();
+      if (!raw) { setStatus('error', 'Enter a prompt first, then click Enhance'); return; }
+
+      var btn = document.getElementById('enhance-btn');
+      var overlay = document.getElementById('enhance-overlay');
+      btn.disabled = true;
+      btn.textContent = '⏳ Enhancing…';
+      if (overlay) { overlay.style.display = 'flex'; }
+      setStatus('generating', 'Enhancing prompt with Grok AI…');
+
+      try {
+        var enhanced = await window.xAI.enhancePrompt(raw);
+        ta.value = enhanced;
+        ta.focus();
+        setStatus('ready', '✨ Prompt enhanced by Grok — review and click Generate');
+      } catch (e) {
+        setStatus('error', '⚠️ Enhance failed: ' + e.message);
+        if (!window.xAI.hasKey()) toggleSettings();
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '✨ Enhance';
+        if (overlay) overlay.style.display = 'none';
+      }
+    }
+
+    // ── Image generation via xAI Aurora ─────────────────────────────────────
+    async function runImageGen() {
+      if (!window.xAI) { setStatus('error', 'xAI module not loaded'); return; }
+
+      var promptText = (document.getElementById('img-gen-prompt').value.trim()) ||
+                       (document.getElementById('prompt-input').value.trim());
+      if (!promptText) { setStatus('error', 'Enter a prompt or image description first'); return; }
+
+      var btn    = document.getElementById('gen-img-btn');
+      var status = document.getElementById('img-gen-status');
+      btn.disabled = true;
+      btn.textContent = '⏳ Generating…';
+      if (status) { status.style.display = 'block'; status.textContent = '🎨 Generating image with xAI Aurora…'; }
+      setStatus('generating', 'Generating image with xAI Aurora…');
+
+      try {
+        var result = await window.xAI.generateImage(promptText);
+        var src = result.url || ('data:image/png;base64,' + result.b64);
+        addImage(src, 'xai-generated.png');
+        if (status) status.textContent = '✅ Image generated and added to the grid';
+        setStatus('ready', '🎨 AI image generated — now click Generate Composition');
+      } catch (e) {
+        setStatus('error', '⚠️ Image gen failed: ' + e.message);
+        if (status) status.textContent = '⚠️ ' + e.message;
+        if (!window.xAI.hasKey()) toggleSettings();
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🎨 Generate with AI';
+      }
+    }
   </script>
+  <script src="assets/xai.js"></script>
 </body>
 </html>
