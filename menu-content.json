@@ -1,6 +1,7 @@
 [
   { "label": "Studio", "url": "index.html", "emoji": "🎬" },
   { "label": "Templates", "url": "templates.html", "emoji": "🎨" },
+  { "label": "Estimate", "url": "estimate.html", "emoji": "🎯" },
   { "label": "Sandbox", "url": "sandbox.html", "emoji": "🧪" },
   { "label": "How It Works", "url": "4_Formula/index.html", "emoji": "📐" },
   { "label": "Code Reference", "url": "5_Symbols/index.html", "emoji": "💻" },

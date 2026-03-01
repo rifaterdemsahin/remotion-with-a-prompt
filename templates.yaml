@@ -1,0 +1,499 @@
+# Remotion Prompt Studio — Template Registry
+# Updated automatically when new templates are added.
+# Categories: Basic | Motion | Text | Background | Numbers | Diagram
+
+version: "1.0"
+
+templates:
+
+  # ─── Basic ──────────────────────────────────────────────────────────────────
+  - id: fade
+    name: Fade
+    category: Basic
+    icon: "🌅"
+    description: Smooth opacity fade-in (and optional fade-out) of text and background.
+    keywords:
+      - fade
+      - fade in
+      - fade out
+      - opacity
+      - appear
+      - disappear
+      - dissolve
+    needsImage: true
+    fields:
+      - id: textContent
+        label: Text
+        type: text
+      - id: bgColor
+        label: Background Color
+        type: color
+      - id: textColor
+        label: Text Color
+        type: color
+      - id: fontSize
+        label: Font Size (px)
+        type: number
+      - id: fontWeight
+        label: Font Weight
+        type: select
+        options: [400, 600, 700, 800, 900]
+      - id: fadeOut
+        label: Fade Out
+        type: toggle
+      - id: hasGradientText
+        label: Gradient Text
+        type: toggle
+      - id: durationSec
+        label: Duration (s)
+        type: number
+
+  # ─── Motion ─────────────────────────────────────────────────────────────────
+  - id: slide
+    name: Slide
+    category: Motion
+    icon: "➡️"
+    description: Text slides in from a chosen direction using a spring animation.
+    keywords:
+      - slide
+      - slide in
+      - slide out
+      - move
+      - enter
+      - left
+      - right
+      - up
+      - down
+      - direction
+    needsImage: true
+    fields:
+      - id: textContent
+        label: Text
+        type: text
+      - id: slideDirection
+        label: Direction
+        type: select
+        options: [left, right, up, down]
+      - id: bgColor
+        label: Background Color
+        type: color
+      - id: textColor
+        label: Text Color
+        type: color
+      - id: fontSize
+        label: Font Size (px)
+        type: number
+      - id: durationSec
+        label: Duration (s)
+        type: number
+
+  - id: zoom
+    name: Zoom
+    category: Motion
+    icon: "🔍"
+    description: Text zooms in from small scale to full size, optionally with a fade.
+    keywords:
+      - zoom
+      - zoom in
+      - zoom out
+      - scale
+      - grow
+      - shrink
+      - magnify
+    needsImage: true
+    fields:
+      - id: textContent
+        label: Text
+        type: text
+      - id: bgColor
+        label: Background Color
+        type: color
+      - id: textColor
+        label: Text Color
+        type: color
+      - id: fontSize
+        label: Font Size (px)
+        type: number
+      - id: zoomIn
+        label: Zoom In
+        type: toggle
+      - id: durationSec
+        label: Duration (s)
+        type: number
+
+  - id: bounce
+    name: Bounce
+    category: Motion
+    icon: "🎪"
+    description: Text bounces in with a low-damping spring for a playful elastic effect.
+    keywords:
+      - bounce
+      - elastic
+      - spring
+      - pop
+      - rubber
+      - playful
+      - jump
+    needsImage: true
+    fields:
+      - id: textContent
+        label: Text
+        type: text
+      - id: bgColor
+        label: Background Color
+        type: color
+      - id: textColor
+        label: Text Color
+        type: color
+      - id: fontSize
+        label: Font Size (px)
+        type: number
+      - id: durationSec
+        label: Duration (s)
+        type: number
+
+  - id: rotate
+    name: Rotate
+    category: Motion
+    icon: "🔄"
+    description: Text spins into view with a rotation + fade-in combo.
+    keywords:
+      - rotate
+      - spin
+      - turn
+      - revolve
+      - twist
+      - angular
+    needsImage: true
+    fields:
+      - id: textContent
+        label: Text
+        type: text
+      - id: bgColor
+        label: Background Color
+        type: color
+      - id: textColor
+        label: Text Color
+        type: color
+      - id: fontSize
+        label: Font Size (px)
+        type: number
+      - id: durationSec
+        label: Duration (s)
+        type: number
+
+  # ─── Text ───────────────────────────────────────────────────────────────────
+  - id: typewriter
+    name: Typewriter
+    category: Text
+    icon: "⌨️"
+    description: Characters appear one by one, simulating live typing.
+    keywords:
+      - typewriter
+      - typing
+      - type
+      - characters
+      - letter by letter
+      - text reveal
+      - code typing
+    needsImage: false
+    fields:
+      - id: textContent
+        label: Text
+        type: text
+      - id: bgColor
+        label: Background Color
+        type: color
+      - id: textColor
+        label: Text Color
+        type: color
+      - id: fontSize
+        label: Font Size (px)
+        type: number
+      - id: durationSec
+        label: Duration (s)
+        type: number
+
+  - id: typewriter-cursor
+    name: Typewriter + Cursor
+    category: Text
+    icon: "🖥️"
+    description: Same as typewriter but adds a blinking | cursor at the insertion point.
+    keywords:
+      - typewriter cursor
+      - blinking cursor
+      - cursor
+      - terminal
+      - command line
+      - cli
+      - code editor
+    needsImage: false
+    fields:
+      - id: textContent
+        label: Text
+        type: text
+      - id: bgColor
+        label: Background Color
+        type: color
+      - id: textColor
+        label: Text Color
+        type: color
+      - id: fontSize
+        label: Font Size (px)
+        type: number
+      - id: durationSec
+        label: Duration (s)
+        type: number
+
+  - id: stagger
+    name: Stagger List
+    category: Text
+    icon: "📋"
+    description: Multiple lines appear one after another with a staggered spring entrance.
+    keywords:
+      - stagger
+      - list
+      - bullet points
+      - items
+      - steps
+      - checklist
+      - lines
+      - sequential
+      - one by one
+    needsImage: false
+    fields:
+      - id: staggerItems
+        label: Items (comma-separated)
+        type: textarea
+      - id: bgColor
+        label: Background Color
+        type: color
+      - id: textColor
+        label: Text Color
+        type: color
+      - id: fontSize
+        label: Font Size (px)
+        type: number
+      - id: durationSec
+        label: Duration (s)
+        type: number
+
+  - id: wave
+    name: Wave
+    category: Text
+    icon: "🌊"
+    description: Each character oscillates up and down with a phase-shifted sine wave.
+    keywords:
+      - wave
+      - wavy
+      - ripple
+      - bounce text
+      - oscillate
+      - sin wave
+      - flowing
+    needsImage: false
+    fields:
+      - id: textContent
+        label: Text
+        type: text
+      - id: bgColor
+        label: Background Color
+        type: color
+      - id: textColor
+        label: Text Color
+        type: color
+      - id: fontSize
+        label: Font Size (px)
+        type: number
+      - id: durationSec
+        label: Duration (s)
+        type: number
+
+  # ─── Background ─────────────────────────────────────────────────────────────
+  - id: particle
+    name: Particles
+    category: Background
+    icon: "✨"
+    description: Floating dots drift upward in the background while text fades in.
+    keywords:
+      - particle
+      - particles
+      - dots
+      - floating
+      - confetti
+      - sparkle
+      - stars
+      - ambient
+    needsImage: false
+    fields:
+      - id: textContent
+        label: Text
+        type: text
+      - id: bgColor
+        label: Background Color
+        type: color
+      - id: textColor
+        label: Text Color
+        type: color
+      - id: fontSize
+        label: Font Size (px)
+        type: number
+      - id: particleCount
+        label: Particle Count
+        type: number
+      - id: durationSec
+        label: Duration (s)
+        type: number
+
+  # ─── Numbers ────────────────────────────────────────────────────────────────
+  - id: counter
+    name: Counter
+    category: Numbers
+    icon: "🔢"
+    description: A number counts up from 0 to a target value over the animation duration.
+    keywords:
+      - counter
+      - count
+      - count up
+      - number
+      - increment
+      - odometer
+      - tally
+      - statistic
+      - metric
+    needsImage: false
+    fields:
+      - id: counterTarget
+        label: Target Number
+        type: number
+      - id: counterPrefix
+        label: Prefix (e.g. $)
+        type: text
+      - id: counterSuffix
+        label: Suffix (e.g. %)
+        type: text
+      - id: bgColor
+        label: Background Color
+        type: color
+      - id: textColor
+        label: Text Color
+        type: color
+      - id: fontSize
+        label: Font Size (px)
+        type: number
+      - id: durationSec
+        label: Duration (s)
+        type: number
+
+  # ─── Diagram ────────────────────────────────────────────────────────────────
+  - id: diagram-1box
+    name: 1 Box Diagram
+    category: Diagram
+    icon: "📦"
+    description: A single highlighted box with title and content text, spring-animated.
+    keywords:
+      - diagram
+      - box
+      - card
+      - single box
+      - highlight
+      - callout
+      - feature box
+    needsImage: false
+    fields:
+      - id: boxTitle
+        label: Box Title
+        type: text
+      - id: boxContent
+        label: Box Content
+        type: textarea
+      - id: bgColor
+        label: Background Color
+        type: color
+      - id: boxColor
+        label: Box Color
+        type: color
+      - id: textColor
+        label: Text Color
+        type: color
+      - id: durationSec
+        label: Duration (s)
+        type: number
+
+  - id: diagram-2box
+    name: 2 Box Diagram
+    category: Diagram
+    icon: "📦📦"
+    description: Two boxes connected by an arrow, each spring-animated in sequence.
+    keywords:
+      - two boxes
+      - 2 boxes
+      - flow
+      - flowchart
+      - process
+      - step by step
+      - before after
+      - input output
+      - arrow
+    needsImage: false
+    fields:
+      - id: box1Title
+        label: Box 1 Title
+        type: text
+      - id: box2Title
+        label: Box 2 Title
+        type: text
+      - id: arrowLabel
+        label: Arrow Label
+        type: text
+      - id: bgColor
+        label: Background Color
+        type: color
+      - id: boxColor
+        label: Box Color
+        type: color
+      - id: textColor
+        label: Text Color
+        type: color
+      - id: durationSec
+        label: Duration (s)
+        type: number
+
+  - id: diagram-3box
+    name: 3 Box Diagram
+    category: Diagram
+    icon: "📦📦📦"
+    description: Three boxes in a horizontal flow, each entering with a staggered spring.
+    keywords:
+      - three boxes
+      - 3 boxes
+      - three steps
+      - pipeline
+      - funnel
+      - stages
+      - workflow
+      - process flow
+      - sequence
+    needsImage: false
+    fields:
+      - id: box1Title
+        label: Box 1 Title
+        type: text
+      - id: box2Title
+        label: Box 2 Title
+        type: text
+      - id: box3Title
+        label: Box 3 Title
+        type: text
+      - id: bgColor
+        label: Background Color
+        type: color
+      - id: boxColor
+        label: Box Color
+        type: color
+      - id: textColor
+        label: Text Color
+        type: color
+      - id: durationSec
+        label: Duration (s)
+        type: number

@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎯 Estimate — Remotion Studio</title>
+  <meta name="description" content="Describe your animation and Grok will recommend the best matching template or tell you what new template needs to be built." />
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script src="env-config.js" onerror="window.ENV=window.ENV||{}"></script>
+  <style>
+    .est-layout {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 24px;
+      padding: 24px;
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+    @media (max-width: 900px) {
+      .est-layout { grid-template-columns: 1fr; }
+    }
+
+    .est-textarea {
+      width: 100%;
+      min-height: 160px;
+      font-family: inherit;
+      font-size: 14px;
+      line-height: 1.6;
+      resize: vertical;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      box-sizing: border-box;
+    }
+    .est-textarea:focus { outline: none; border-color: var(--accent); }
+
+    .result-card {
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      padding: 20px;
+      margin-bottom: 16px;
+      background: var(--bg-secondary);
+    }
+    .result-card.match-found {
+      border-color: #22c55e;
+      background: linear-gradient(135deg, rgba(34,197,94,0.08), rgba(34,197,94,0.03));
+    }
+    .result-card.match-new {
+      border-color: #f59e0b;
+      background: linear-gradient(135deg, rgba(245,158,11,0.10), rgba(245,158,11,0.03));
+    }
+    .result-card.match-error {
+      border-color: #ef4444;
+      background: linear-gradient(135deg, rgba(239,68,68,0.08), rgba(239,68,68,0.03));
+    }
+
+    .confidence-bar-wrap {
+      background: var(--bg-tertiary);
+      border-radius: 99px;
+      height: 8px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    .confidence-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #22c55e, #4ade80);
+      transition: width 0.6s ease;
+    }
+
+    .tpl-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: default;
+    }
+    .tpl-chip.cat-Basic      { border-color: #6366f1; color: #818cf8; }
+    .tpl-chip.cat-Motion     { border-color: #22d3ee; color: #67e8f9; }
+    .tpl-chip.cat-Text       { border-color: #a78bfa; color: #c4b5fd; }
+    .tpl-chip.cat-Background { border-color: #f472b6; color: #f9a8d4; }
+    .tpl-chip.cat-Numbers    { border-color: #fb923c; color: #fdba74; }
+    .tpl-chip.cat-Diagram    { border-color: #34d399; color: #6ee7b7; }
+
+    .all-templates-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .mini-tpl-card {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .mini-tpl-card:hover {
+      border-color: var(--accent);
+      background: rgba(124,58,237,0.08);
+    }
+    .mini-tpl-card .icon { font-size: 22px; display: block; margin-bottom: 4px; }
+    .mini-tpl-card .name { font-size: 12px; font-weight: 700; }
+    .mini-tpl-card .cat  { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+    .dev-guide-pre {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      font-size: 12px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 400px;
+      overflow-y: auto;
+      margin-top: 12px;
+    }
+
+    .key-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .key-input {
+      flex: 1;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-primary);
+      padding: 8px 12px;
+      font-size: 13px;
+      font-family: monospace;
+    }
+    .key-input:focus { outline: none; border-color: var(--accent); }
+
+    #result-col { min-height: 200px; }
+
+    .placeholder-msg {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+    .placeholder-msg .big { font-size: 48px; margin-bottom: 12px; }
+
+    .spinner { display: inline-block; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .top-matches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .top-match-item {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+      font-size: 13px;
+    }
+    .top-match-item:hover { border-color: var(--accent); }
+    .top-match-item .score { color: #22c55e; font-weight: 700; font-size: 12px; }
+  </style>
+</head>
+<body data-root="./">
+  <nav id="debug-nav"></nav>
+  <nav id="main-nav">
+    <a href="index.html" class="nav-logo">🎬 <span>Remotion</span> Studio</a>
+    <div id="nav-search-container"><input type="text" id="nav-search" placeholder="Search..." autocomplete="off" /><span class="search-icon">🔍</span><div id="search-dropdown"></div></div>
+    <div id="content-nav-items"></div>
+    <div class="nav-actions">
+      <a href="https://github.com/rifaterdemsahin/remotion-with-a-prompt" target="_blank" class="nav-social-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.09.68-.22.68-.48l-.01-1.69c-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0112 6.8c.85.004 1.71.11 2.51.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85l-.01 2.75c0 .27.18.58.69.48A10.02 10.02 0 0022 12c0-5.52-4.48-10-10-10z"/></svg></a>
+      <a href="https://www.linkedin.com/in/rifaterdemsahin/" target="_blank" class="nav-social-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+      <a href="https://www.youtube.com/@RifatErdemSahin" target="_blank" class="nav-social-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+      <button id="debug-toggle-btn" onclick="window.toggleDebug()">🐛</button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <div class="page-content">
+    <div class="hero" style="padding-bottom:8px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+        <span style="font-size:48px">🎯</span>
+        <div>
+          <h1 style="font-size:32px;font-weight:800;margin:0">Estimate</h1>
+          <p style="color:var(--text-secondary);margin:4px 0 0">Describe your animation — Grok picks the right template or tells you what to build next.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="est-layout">
+      <!-- ── Left column: input ─────────────────────────────────────────── -->
+      <div>
+        <!-- Requirement input -->
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-title">✏️ Animation Requirement</div>
+          <textarea
+            id="requirement-input"
+            class="est-textarea"
+            placeholder="Describe the animation you want to build...&#10;&#10;Examples:&#10;• Count up from 0 to 1,000,000 with a dollar sign&#10;• Three steps entering one after another with arrows&#10;• Text that types itself like a terminal cursor&#10;• Particles floating up behind bold white text&#10;• A flowchart with 2 boxes and a connecting arrow"
+          ></textarea>
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button id="estimate-btn" class="btn btn-primary" style="flex:1" onclick="runEstimate()">
+              🎯 Estimate with Grok
+            </button>
+            <button class="btn" onclick="clearEstimate()" title="Clear">✕</button>
+          </div>
+        </div>
+
+        <!-- API Key -->
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-title" style="margin-bottom:8px">🔑 xAI API Key</div>
+          <div class="key-row">
+            <input type="password" id="key-input" class="key-input" placeholder="xai-…" autocomplete="off" />
+            <button class="btn" onclick="saveKey()">Save</button>
+            <button class="btn" onclick="clearKey()" title="Remove key">🗑</button>
+          </div>
+          <div id="key-status" style="font-size:12px;margin-top:6px;color:var(--text-muted)">
+            Checking…
+          </div>
+          <p style="font-size:12px;color:var(--text-muted);margin:8px 0 0">
+            Without a key, the estimate runs on keyword matching only (no AI).
+          </p>
+        </div>
+
+        <!-- Available templates reference -->
+        <div class="card">
+          <div class="card-title" style="margin-bottom:4px">📚 14 Available Templates</div>
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Click any to open in Studio.</p>
+          <div class="all-templates-grid" id="tpl-grid"></div>
+        </div>
+      </div>
+
+      <!-- ── Right column: result ───────────────────────────────────────── -->
+      <div id="result-col">
+        <div class="placeholder-msg" id="placeholder">
+          <div class="big">🎯</div>
+          <div style="font-size:16px;font-weight:700;margin-bottom:8px">Ready to estimate</div>
+          <div style="font-size:14px">Describe your animation on the left,<br>then click <strong>Estimate with Grok</strong>.</div>
+        </div>
+        <!-- Results injected here -->
+      </div>
+    </div>
+  </div>
+
+  <footer><p>🎬 Remotion Studio &nbsp;|&nbsp; <a href="https://github.com/rifaterdemsahin/remotion-with-a-prompt">GitHub</a> &nbsp;|&nbsp; <a href="https://www.linkedin.com/in/rifaterdemsahin/">LinkedIn</a> &nbsp;|&nbsp; <a href="https://www.youtube.com/@RifatErdemSahin">YouTube</a></p></footer>
+
+  <script src="assets/nav-component.js"></script>
+  <script src="assets/xai.js"></script>
+  <script>
+  // ── Template registry (mirrors templates.yaml) ──────────────────────────────
+  var TEMPLATES = [
+    {
+      id: 'fade', name: 'Fade', category: 'Basic', icon: '🌅',
+      description: 'Smooth opacity fade-in and optional fade-out of text.',
+      keywords: ['fade','fade in','fade out','opacity','appear','disappear','dissolve'],
+    },
+    {
+      id: 'slide', name: 'Slide', category: 'Motion', icon: '➡️',
+      description: 'Text slides in from left/right/up/down using spring animation.',
+      keywords: ['slide','slide in','move','enter','left','right','up','down','direction'],
+    },
+    {
+      id: 'zoom', name: 'Zoom', category: 'Motion', icon: '🔍',
+      description: 'Text zooms in from small to full size.',
+      keywords: ['zoom','zoom in','zoom out','scale','grow','shrink','magnify'],
+    },
+    {
+      id: 'bounce', name: 'Bounce', category: 'Motion', icon: '🎪',
+      description: 'Text bounces in with a low-damping elastic spring.',
+      keywords: ['bounce','elastic','spring','pop','rubber','playful','jump'],
+    },
+    {
+      id: 'rotate', name: 'Rotate', category: 'Motion', icon: '🔄',
+      description: 'Text spins into view with rotation and fade.',
+      keywords: ['rotate','spin','turn','revolve','twist','angular'],
+    },
+    {
+      id: 'typewriter', name: 'Typewriter', category: 'Text', icon: '⌨️',
+      description: 'Characters appear one by one, simulating live typing.',
+      keywords: ['typewriter','typing','type','characters','letter by letter','text reveal'],
+    },
+    {
+      id: 'typewriter-cursor', name: 'Typewriter + Cursor', category: 'Text', icon: '🖥️',
+      description: 'Typewriter with blinking cursor at the insertion point.',
+      keywords: ['typewriter cursor','blinking cursor','cursor','terminal','command line','cli','code editor'],
+    },
+    {
+      id: 'stagger', name: 'Stagger List', category: 'Text', icon: '📋',
+      description: 'Multiple lines appear one after another with staggered spring entrance.',
+      keywords: ['stagger','list','bullet points','items','steps','checklist','lines','sequential','one by one'],
+    },
+    {
+      id: 'wave', name: 'Wave', category: 'Text', icon: '🌊',
+      description: 'Each character oscillates with a phase-shifted sine wave.',
+      keywords: ['wave','wavy','ripple','bounce text','oscillate','sin wave','flowing'],
+    },
+    {
+      id: 'particle', name: 'Particles', category: 'Background', icon: '✨',
+      description: 'Floating dots drift upward while text fades in.',
+      keywords: ['particle','particles','dots','floating','confetti','sparkle','stars','ambient'],
+    },
+    {
+      id: 'counter', name: 'Counter', category: 'Numbers', icon: '🔢',
+      description: 'A number counts up from 0 to a target value.',
+      keywords: ['counter','count','count up','number','increment','odometer','tally','statistic','metric'],
+    },
+    {
+      id: 'diagram-1box', name: '1 Box Diagram', category: 'Diagram', icon: '📦',
+      description: 'Single highlighted box with title and content, spring-animated.',
+      keywords: ['diagram','box','card','single box','highlight','callout','feature box'],
+    },
+    {
+      id: 'diagram-2box', name: '2 Box Diagram', category: 'Diagram', icon: '📦📦',
+      description: 'Two boxes connected by an arrow, sequentially animated.',
+      keywords: ['two boxes','2 boxes','flow','flowchart','process','before after','input output','arrow'],
+    },
+    {
+      id: 'diagram-3box', name: '3 Box Diagram', category: 'Diagram', icon: '📦📦📦',
+      description: 'Three boxes in a horizontal flow with staggered spring entry.',
+      keywords: ['three boxes','3 boxes','three steps','pipeline','funnel','stages','workflow','process flow','sequence'],
+    },
+  ];
+
+  // ── Build template grid ────────────────────────────────────────────────────
+  function buildGrid() {
+    var html = '';
+    TEMPLATES.forEach(function(t) {
+      html += '<div class="mini-tpl-card" onclick="openInStudio(\'' + t.id + '\')" title="Open ' + t.name + ' in Studio">'
+        + '<span class="icon">' + t.icon + '</span>'
+        + '<div class="name">' + t.name + '</div>'
+        + '<div class="cat">' + t.category + '</div>'
+        + '</div>';
+    });
+    document.getElementById('tpl-grid').innerHTML = html;
+  }
+
+  function openInStudio(tplId) {
+    window.location.href = 'index.html?tpl=' + encodeURIComponent(tplId);
+  }
+
+  // ── API Key UI ─────────────────────────────────────────────────────────────
+  function updateKeyStatus() {
+    var el = document.getElementById('key-status');
+    if (window.xAI && window.xAI.hasKey()) {
+      el.textContent = '✅ Key set — AI estimation enabled';
+      el.style.color = '#22c55e';
+    } else {
+      el.textContent = '⚠️ No key — keyword matching only';
+      el.style.color = '#f59e0b';
+    }
+  }
+
+  function saveKey() {
+    var v = document.getElementById('key-input').value.trim();
+    if (!v) return;
+    window.xAI.setKey(v);
+    document.getElementById('key-input').value = '';
+    updateKeyStatus();
+  }
+
+  function clearKey() {
+    window.xAI.clearKey();
+    document.getElementById('key-input').value = '';
+    updateKeyStatus();
+  }
+
+  // ── Keyword-only estimation (fallback) ─────────────────────────────────────
+  function keywordEstimate(requirement) {
+    var q = requirement.toLowerCase();
+    var scores = TEMPLATES.map(function(t) {
+      var score = 0;
+      t.keywords.forEach(function(kw) { if (q.includes(kw)) score += kw.split(' ').length; });
+      return { id: t.id, score: score };
+    }).filter(function(s) { return s.score > 0; })
+      .sort(function(a, b) { return b.score - a.score; });
+
+    if (scores.length === 0) return { match: 'new', confidence: 0, reason: 'No keyword matches found in the 14 available templates.' };
+    var best = scores[0];
+    var confidence = Math.min(95, best.score * 15);
+    return { match: best.id, confidence: confidence, reason: 'Matched by keywords: ' + TEMPLATES.find(function(t){ return t.id === best.id; }).keywords.join(', ') + '.', topMatches: scores.slice(0,4) };
+  }
+
+  // ── AI estimation ─────────────────────────────────────────────────────────
+  async function aiEstimate(requirement) {
+    var catalog = TEMPLATES.map(function(t) {
+      return t.id + ' (' + t.category + '): ' + t.description + ' Keywords: ' + t.keywords.join(', ') + '.';
+    }).join('\n');
+
+    var systemPrompt = [
+      'You are a template matching expert for Remotion Prompt Studio.',
+      'Given a user animation requirement, find the best matching template from the catalog, or determine a new template is needed.',
+      'Return ONLY valid JSON in one of these two forms:',
+      '1) Match found: {"match":"<template-id>","confidence":<0-100>,"reason":"<1-2 sentence explanation>","topMatches":[{"id":"<id>","score":<0-100>},{"id":"<id>","score":<0-100>}]}',
+      '2) New template needed: {"match":"new","name":"<ShortName>","category":"<Basic|Motion|Text|Background|Numbers|Diagram>","description":"<one sentence>","keywords":["k1","k2","k3"],"reason":"<why no existing template fits>","devGuide":"<concrete step-by-step guide for a developer to implement this template: id, keywords, canvas render logic, TSX animation code>"}',
+      'Rules: prefer existing templates if confidence >= 50. topMatches is an array of up to 4 alternative template IDs with scores.',
+      'Available templates:\n' + catalog,
+      'Return ONLY the JSON — no markdown fences, no explanation outside the JSON.',
+    ].join(' ');
+
+    var res = await fetch('https://api.x.ai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + window.xAI.getKey(),
+      },
+      body: JSON.stringify({
+        model: 'grok-2-latest',
+        max_tokens: 700,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: requirement },
+        ],
+      }),
+    });
+
+    if (!res.ok) {
+      var err = await res.json().catch(function() { return {}; });
+      throw new Error('xAI error ' + res.status + ': ' + ((err.error && err.error.message) || res.statusText));
+    }
+
+    var data = await res.json();
+    var raw = (data.choices[0].message.content || '').trim();
+    raw = raw.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '');
+    return JSON.parse(raw);
+  }
+
+  // ── Render result ──────────────────────────────────────────────────────────
+  function renderMatchFound(result) {
+    var tpl = TEMPLATES.find(function(t) { return t.id === result.match; });
+    if (!tpl) { renderError('Unknown template ID: ' + result.match); return; }
+
+    var altHtml = '';
+    if (result.topMatches && result.topMatches.length > 1) {
+      altHtml = '<div style="margin-top:16px"><div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Alternative templates</div><div class="top-matches">';
+      result.topMatches.slice(1).forEach(function(m) {
+        var at = TEMPLATES.find(function(t) { return t.id === m.id; });
+        if (!at) return;
+        altHtml += '<div class="top-match-item" onclick="openInStudio(\'' + at.id + '\')" title="Open in Studio">'
+          + at.icon + ' ' + at.name
+          + ' <span class="score">' + (m.score || '') + '%</span>'
+          + '</div>';
+      });
+      altHtml += '</div></div>';
+    }
+
+    document.getElementById('result-col').innerHTML = ''
+      + '<div class="result-card match-found">'
+      + '  <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">'
+      + '    <span style="font-size:40px">' + tpl.icon + '</span>'
+      + '    <div>'
+      + '      <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:#22c55e;font-weight:700">Best Match</div>'
+      + '      <div style="font-size:22px;font-weight:800">' + tpl.name + '</div>'
+      + '      <div class="tpl-chip cat-' + tpl.category + '" style="margin-top:4px">' + tpl.category + '</div>'
+      + '    </div>'
+      + '    <div style="margin-left:auto;text-align:right">'
+      + '      <div style="font-size:28px;font-weight:800;color:#22c55e">' + (result.confidence || '—') + '%</div>'
+      + '      <div style="font-size:11px;color:var(--text-muted)">confidence</div>'
+      + '    </div>'
+      + '  </div>'
+      + '  <div class="confidence-bar-wrap"><div class="confidence-bar-fill" style="width:' + (result.confidence || 0) + '%"></div></div>'
+      + '  <p style="color:var(--text-secondary);font-size:14px;margin:12px 0">' + (result.reason || '') + '</p>'
+      + '  <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">' + tpl.description + '</p>'
+      + '  <button class="btn btn-primary" onclick="openInStudio(\'' + tpl.id + '\')" style="width:100%">🎬 Open in Studio →</button>'
+      + altHtml
+      + '</div>'
+      + '<div class="result-card" style="margin-top:0">'
+      + '  <div class="card-title" style="margin-bottom:6px">💡 Keywords that led here</div>'
+      + '  <div style="display:flex;flex-wrap:wrap;gap:6px">'
+      + tpl.keywords.map(function(k) { return '<span style="background:var(--bg-tertiary);border:1px solid var(--border);border-radius:99px;padding:2px 10px;font-size:12px">' + k + '</span>'; }).join('')
+      + '  </div>'
+      + '  <div style="margin-top:12px;font-size:13px;color:var(--text-muted)">Not the right fit? <a href="templates.html" style="color:var(--accent)">Browse all 14 templates →</a></div>'
+      + '</div>';
+  }
+
+  function renderNewTemplate(result) {
+    document.getElementById('result-col').innerHTML = ''
+      + '<div class="result-card match-new">'
+      + '  <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">'
+      + '    <span style="font-size:40px">🔨</span>'
+      + '    <div>'
+      + '      <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:#f59e0b;font-weight:700">New Template Needed</div>'
+      + '      <div style="font-size:22px;font-weight:800">' + (result.name || 'Custom Animation') + '</div>'
+      + '      <div class="tpl-chip cat-' + (result.category || 'Motion') + '" style="margin-top:4px">' + (result.category || 'TBD') + '</div>'
+      + '    </div>'
+      + '  </div>'
+      + '  <p style="color:var(--text-secondary);font-size:14px;margin:0 0 8px">' + (result.reason || '') + '</p>'
+      + (result.description ? '<p style="font-size:13px;color:var(--text-muted);margin:0 0 12px">' + result.description + '</p>' : '')
+      + (result.keywords && result.keywords.length ? '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">' + result.keywords.map(function(k){ return '<span style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:99px;padding:2px 10px;font-size:12px">' + k + '</span>'; }).join('') + '</div>' : '')
+      + '  <div style="display:flex;gap:8px;margin-bottom:4px">'
+      + '    <button class="btn btn-primary" style="flex:1" onclick="copyDevGuide()">📋 Copy Developer Guide</button>'
+      + '    <a href="templates.html" class="btn" style="text-decoration:none">Browse Templates</a>'
+      + '  </div>'
+      + '</div>'
+      + (result.devGuide ? '<div class="result-card" style="margin-top:0">'
+        + '  <div class="card-title" style="margin-bottom:4px">🛠 Developer Guide</div>'
+        + '  <p style="font-size:12px;color:var(--text-muted);margin-bottom:0">Copy this into your implementation — add to <code>index.html</code>, <code>templates.html</code>, and <code>templates.yaml</code>.</p>'
+        + '  <pre id="dev-guide-content" class="dev-guide-pre">' + escHtml(result.devGuide) + '</pre>'
+        + '</div>' : '')
+      + '<div class="result-card" style="margin-top:0">'
+      + '  <div class="card-title" style="margin-bottom:6px">📋 What to add to templates.yaml</div>'
+      + '  <pre class="dev-guide-pre" style="max-height:200px">' + escHtml(buildYamlSnippet(result)) + '</pre>'
+      + '  <button class="btn" style="margin-top:8px;width:100%" onclick="copyYamlSnippet(\'' + escHtml(JSON.stringify(result)) + '\')">Copy YAML snippet</button>'
+      + '</div>';
+  }
+
+  function renderError(msg) {
+    document.getElementById('result-col').innerHTML = ''
+      + '<div class="result-card match-error">'
+      + '  <div style="font-size:32px;margin-bottom:8px">❌</div>'
+      + '  <div style="font-weight:700;margin-bottom:8px">Estimation failed</div>'
+      + '  <p style="color:var(--text-secondary);font-size:14px;margin:0">' + escHtml(String(msg)) + '</p>'
+      + '  <p style="font-size:13px;color:var(--text-muted);margin:12px 0 0">Check your xAI API key or try keyword matching without a key.</p>'
+      + '</div>';
+  }
+
+  // ── Main flow ──────────────────────────────────────────────────────────────
+  async function runEstimate() {
+    var req = (document.getElementById('requirement-input').value || '').trim();
+    if (!req) {
+      alert('Please describe your animation requirement first.');
+      return;
+    }
+
+    // Loading state
+    document.getElementById('placeholder').style.display = 'none';
+    document.getElementById('result-col').innerHTML = ''
+      + '<div style="text-align:center;padding:60px 20px;color:var(--text-muted)">'
+      + '  <span class="spinner" style="font-size:36px">⚙️</span>'
+      + '  <div style="margin-top:16px;font-size:16px;font-weight:700">Analysing requirement…</div>'
+      + '  <div style="font-size:13px;margin-top:6px">' + (window.xAI && window.xAI.hasKey() ? 'Consulting Grok…' : 'Running keyword matching…') + '</div>'
+      + '</div>';
+
+    document.getElementById('estimate-btn').disabled = true;
+
+    try {
+      var result;
+      if (window.xAI && window.xAI.hasKey()) {
+        result = await aiEstimate(req);
+      } else {
+        result = keywordEstimate(req);
+      }
+
+      if (result.match === 'new') {
+        // If keyword match returned new, try to get a dev guide from AI
+        if (window.xAI && window.xAI.hasKey() && !result.devGuide) {
+          try {
+            result.devGuide = await window.xAI.generateNewTemplatePrompt(req);
+          } catch(e) { /* ignore — dev guide is optional */ }
+        }
+        renderNewTemplate(result);
+      } else {
+        renderMatchFound(result);
+      }
+    } catch (e) {
+      renderError(e.message || String(e));
+    } finally {
+      document.getElementById('estimate-btn').disabled = false;
+    }
+  }
+
+  function clearEstimate() {
+    document.getElementById('requirement-input').value = '';
+    document.getElementById('result-col').innerHTML = '<div class="placeholder-msg" id="placeholder">'
+      + '<div class="big">🎯</div>'
+      + '<div style="font-size:16px;font-weight:700;margin-bottom:8px">Ready to estimate</div>'
+      + '<div style="font-size:14px">Describe your animation on the left,<br>then click <strong>Estimate with Grok</strong>.</div>'
+      + '</div>';
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function copyDevGuide() {
+    var el = document.getElementById('dev-guide-content');
+    if (!el) return;
+    navigator.clipboard.writeText(el.textContent).then(function() {
+      alert('Developer guide copied to clipboard!');
+    });
+  }
+
+  function copyYamlSnippet(resultJson) {
+    try {
+      var result = JSON.parse(resultJson);
+      var snippet = buildYamlSnippet(result);
+      navigator.clipboard.writeText(snippet).then(function() {
+        alert('YAML snippet copied to clipboard!');
+      });
+    } catch(e) { alert('Could not copy YAML snippet.'); }
+  }
+
+  function buildYamlSnippet(result) {
+    var name = result.name || 'New Template';
+    var id = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    var cat = result.category || 'Motion';
+    var desc = result.description || '';
+    var keywords = (result.keywords || []).map(function(k){ return '      - ' + k; }).join('\n');
+    return '  - id: ' + id + '\n'
+      + '    name: ' + name + '\n'
+      + '    category: ' + cat + '\n'
+      + '    icon: "✨"\n'
+      + '    description: ' + desc + '\n'
+      + '    keywords:\n' + keywords + '\n'
+      + '    needsImage: false\n'
+      + '    fields:\n'
+      + '      - id: textContent\n'
+      + '        label: Text\n'
+      + '        type: text\n'
+      + '      - id: bgColor\n'
+      + '        label: Background Color\n'
+      + '        type: color\n'
+      + '      - id: durationSec\n'
+      + '        label: Duration (s)\n'
+      + '        type: number\n';
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  window.addEventListener('load', function() {
+    buildGrid();
+    updateKeyStatus();
+
+    // Keyboard shortcut: Ctrl/Cmd+Enter
+    document.getElementById('requirement-input').addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runEstimate();
+    });
+  });
+  </script>
+</body>
+</html>
