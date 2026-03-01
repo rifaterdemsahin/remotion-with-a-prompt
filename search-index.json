@@ -124,5 +124,12 @@
     "description": "The single prompt that describes how this repo was created — a self-referential loop from prompt to tool to video",
     "emoji": "✨",
     "tags": ["origin", "prompt", "meta", "creation", "story", "self-referential", "remotion-with-a-prompt"]
+  },
+  {
+    "title": "Pythagorean Theorem Render Guide",
+    "url": "4_Formula/pythagorean-render.md",
+    "description": "Complete guide to rendering a²+b²=c² visualization with Remotion — installation, animation timeline, render process, and troubleshooting for macOS",
+    "emoji": "🧮",
+    "tags": ["pythagorean", "theorem", "formula", "math", "visualization", "remotion", "render", "animation", "geometry", "triangle", "mac", "setup"]
   }
 ]

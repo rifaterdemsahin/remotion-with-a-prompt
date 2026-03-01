@@ -2,15 +2,15 @@
 
 ## Objective 1: Validate Prompt-to-Code Generation
 
-**KR1.1** — 80% of tested prompts generate syntactically valid Remotion TSX code
-**KR1.2** — Support at least 8 animation types (fade, slide, zoom, rotate, bounce, typewriter, gradient, sequence)
-**KR1.3** — Image loading works for both file upload and URL in generated code
+**KR1.1** — Generate syntactically valid Remotion TSX code on local which gets published and used from github pages
+**KR1.2** — Support configured animation types mentioned in templates such as for text template type fade, slide, zoom, rotate, bounce, typewriter, gradient, sequence. For diagramming template type one box 2 box 3 box diagraming.
+**KR1.3** — Configurations includes Image loading, text and color entry with timings.
 
 ## Objective 2: Deliver Usable Web Interface
 
 **KR2.1** — Landing page loads in under 2 seconds on mobile
 **KR2.2** — Preview animation plays within 1 second of generation
-**KR2.3** — Generated code is copy-paste ready into a Remotion project
+**KR2.3** — Sandbox page should give the idea pof the Remotion project
 
 ## Objective 3: Establish Self-Learning Documentation
 
@@ -20,6 +20,6 @@
 
 ## Objective 4: GitHub Pages Deployment
 
-**KR4.1** — Site deployed and accessible via GitHub Pages
+**KR4.1** — Site deployed and accessible via GitHub Pages and query parameters for easy access
 **KR4.2** — GitHub Actions workflow deploys on every push to main
 **KR4.3** — All navigation links functional on deployed site
