@@ -525,7 +525,10 @@
 
       <!-- Preview -->
       <div class="card">
-        <div class="card-title">▶️ Preview</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div class="card-title" style="margin-bottom:0">▶️ Preview</div>
+          <button id="download-preview-btn" class="btn btn-secondary btn-sm" onclick="downloadPreview()" style="display:none">⬇️ Download WebM</button>
+        </div>
         <div class="preview-box" id="preview-box">
           <div class="preview-placeholder" id="preview-placeholder">
             <div class="icon">🎥</div>
@@ -533,6 +536,11 @@
           </div>
           <canvas id="preview-canvas"></canvas>
           <div class="preview-label" id="preview-label" style="display:none">CSS Preview (live render)</div>
+          <!-- Recording indicator -->
+          <div id="rec-indicator" style="display:none;position:absolute;top:10px;right:10px;display:none;align-items:center;gap:6px;background:rgba(0,0,0,0.7);padding:4px 10px;border-radius:20px;font-size:12px;color:white">
+            <span style="width:8px;height:8px;border-radius:50%;background:#f85149;animation:pulse 0.8s infinite;display:inline-block"></span>
+            <span id="rec-label">REC 0.0s</span>
+          </div>
           <div class="progress-bar-wrap">
             <div class="progress-bar" id="progress-bar"></div>
           </div>
@@ -1035,8 +1043,13 @@
     }
 
     // ── CSS Preview ───────────────────────────────────────────────────────────
+    // Scene state kept for the recorder
+    var _recParsed, _recImgEls, _recDuration;
+
     function startPreview(parsed, durationSec, fps, width, height) {
       stopPreview();
+      _recParsed   = parsed;
+      _recDuration = durationSec;
 
       var canvas = document.getElementById('preview-canvas');
       var ctx = canvas.getContext('2d');
@@ -1050,6 +1063,7 @@
       document.getElementById('preview-placeholder').style.display = 'none';
       document.getElementById('preview-label').style.display = 'block';
       document.getElementById('preview-controls').classList.add('visible');
+      document.getElementById('download-preview-btn').style.display = '';
 
       frame = 0;
       isPlaying = true;
@@ -1059,6 +1073,7 @@
       var loadedCount = 0;
 
       function startAnimation() {
+        _recImgEls = imgElements;   // save for recorder
         previewAnim = setInterval(function() {
           if (!isPlaying) return;
           frame++;
@@ -1254,6 +1269,98 @@
         isPlaying = true;
         document.getElementById('play-btn').textContent = '⏸';
       }
+    }
+
+    // ── Download preview as WebM ─────────────────────────────────────────────
+    function downloadPreview() {
+      var canvas = document.getElementById('preview-canvas');
+      if (!canvas || canvas.style.display === 'none') {
+        setStatus('error', 'Generate a preview first before downloading');
+        return;
+      }
+
+      if (!window.MediaRecorder) {
+        setStatus('error', 'MediaRecorder not supported in this browser — try Chrome or Edge');
+        return;
+      }
+
+      // Pick the best supported format
+      var mimeType = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm']
+        .find(function(m) { return MediaRecorder.isTypeSupported(m); }) || 'video/webm';
+
+      var btn      = document.getElementById('download-preview-btn');
+      var recDiv   = document.getElementById('rec-indicator');
+      var recLabel = document.getElementById('rec-label');
+      var chunks   = [];
+      var durationMs = (totalFrames / animFPS) * 1000;
+
+      // Pause live playback, reset to frame 0 for a clean recording
+      stopPreview();
+      frame = 0;
+
+      var stream   = canvas.captureStream(animFPS);
+      var recorder = new MediaRecorder(stream, { mimeType: mimeType });
+
+      recorder.ondataavailable = function(e) {
+        if (e.data && e.data.size > 0) chunks.push(e.data);
+      };
+
+      recorder.onstop = function() {
+        var blob = new Blob(chunks, { type: mimeType });
+        var url  = URL.createObjectURL(blob);
+        var a    = document.createElement('a');
+        a.href     = url;
+        a.download = 'remotion-preview.webm';
+        a.click();
+        URL.revokeObjectURL(url);
+
+        // Restore UI
+        btn.disabled    = false;
+        btn.textContent = '⬇️ Download WebM';
+        recDiv.style.display = 'none';
+        isPlaying = true;
+        document.getElementById('play-btn').textContent = '⏸';
+        setStatus('ready', '✅ Download complete — remotion-preview.webm saved');
+      };
+
+      // Start recording
+      recorder.start();
+      btn.disabled    = true;
+      btn.textContent = '⏺ Recording…';
+      recDiv.style.display = 'flex';
+
+      // Tick the animation manually at exact FPS for a clean render
+      var recFrame = 0;
+      var startTime = null;
+      var ctx = canvas.getContext('2d');
+
+      function recTick(ts) {
+        if (!startTime) startTime = ts;
+        var elapsed = ts - startTime;
+        recFrame = Math.min(Math.round(elapsed / 1000 * animFPS), totalFrames);
+        frame = recFrame;
+
+        // Update recording timer label
+        if (recLabel) recLabel.textContent = 'REC ' + (elapsed / 1000).toFixed(1) + 's';
+
+        // Render this frame (reuse existing renderFrame function)
+        if (typeof _recParsed !== 'undefined') {
+          renderFrame(ctx, canvas, _recParsed, frame, animFPS, totalFrames, _recImgEls, _recDuration);
+        }
+
+        // Update progress bar
+        document.getElementById('progress-bar').style.width = (recFrame / totalFrames * 100) + '%';
+        document.getElementById('preview-time').textContent =
+          (recFrame / animFPS).toFixed(1) + 's / ' + (totalFrames / animFPS).toFixed(1) + 's';
+
+        if (recFrame < totalFrames) {
+          requestAnimationFrame(recTick);
+        } else {
+          recorder.stop();
+        }
+      }
+
+      requestAnimationFrame(recTick);
     }
 
     // Handle canvas resize
